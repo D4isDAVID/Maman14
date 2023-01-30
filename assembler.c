@@ -16,7 +16,7 @@ int main(int argc, char**argv){
 			exit(1);
 		}
 		fd[i]=preassembler(temp,argv[i+1]);
-		close(temp);
+		fclose(temp);
 	}
 	return 0;
 }
