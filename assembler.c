@@ -3,7 +3,7 @@
 #include <fcntl.h>
 #include <stdlib.h>
 #include <string.h>
-#include "preassembler.c"
+#include "preassembler.h"
 
 int main(int argc, char**argv){
 	int i;

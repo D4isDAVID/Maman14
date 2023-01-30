@@ -1,9 +1,9 @@
-#include <stdio.h>
 #include <sys/types.h>
 #include <fcntl.h>
 #include <stdlib.h>
 #include <string.h>
-#include "mlist.c"
+#include "preassembler.h"
+#include "mlist.h"
 
 int whitespace(char line[], int i, FILE *fp) {
     for (; line[i] == ' ' || line[i] == '\t'; i++)
