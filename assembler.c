@@ -1,21 +1,24 @@
+#include <stdio.h>
+#include <string.h>
 #include "preassembler.c"
 
-int main(int argc, char**argv){
+int main(int argc, char **argv) {
 	int i;
-	FILE *file,*temp;
-	if(argc==1){
-		fprintf(stderr,"error no files mentioned\n");
-		exit(1);	
+	FILE *as, *am;
+	if (argc == 1) {
+		fprintf(stderr, "error: no files mentioned\n");
+		return 1;
 	}
-	for(i=0; i+1<argc; i++){
-		temp=fopen(argv[i+1],"r");
-		if(temp==NULL){
-			fprintf(stderr,"error in opening %s.as\n",argv[i+1]);
-			exit(1);
+	for (i = 1; i < argc; i++) {
+		strcat(argv[i], ".as"); /* the filename is given without an extension */
+		as = fopen(argv[i], "r");
+		if (as == NULL) {
+			fprintf(stderr, "error in opening %s\n", argv[i]);
+			return 1;
 		}
-		file=preassembler(temp,argv[i+1]);
-		fclose(temp);
-		
+		*strrchr(argv[i], '.') = '\0'; /* the following operations will need a different file extension */
+		am = preassembler(as, argv[i]);
+		fclose(as);
 	}
 	return 0;
 }
