@@ -145,5 +145,6 @@ FILE *preassembler(FILE *fd, char *nameF){
 			}
 		}
 	}
+	clear();
 	return fp;
 }
