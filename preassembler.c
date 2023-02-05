@@ -1,8 +1,3 @@
-#include <stdio.h>
-#include <fcntl.h>
-#include <stdlib.h>
-#include <string.h>
-#include <ctype.h>
 #include "mlist.c"
 
 void sort(char *data,char *sours,int length, FILE *fp){
