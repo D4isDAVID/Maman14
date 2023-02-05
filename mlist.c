@@ -1,8 +1,4 @@
-#include <stdio.h>
-#include <sys/types.h>
-#include <fcntl.h>
-#include <stdlib.h>
-#include <string.h>
+#include "functions.h"
 
 struct mlist {
 	struct mlist *next;
@@ -35,8 +31,11 @@ void addNode(char *name,char *content){
 char *lookup(char *s){
 	struct mlist *np;
 	np=head;
-	if(strcmp(s,np->name)==0)
-		return np->content; 
+	while(np!=NULL){
+		if(strcmp(s,np->name)==0)
+			return np->content;
+		np=np->next;
+	} 
 	return NULL;
 
 }
