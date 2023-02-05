@@ -39,3 +39,11 @@ char *lookup(char *s){
 	return NULL;
 
 }
+void clear(){
+	struct mlist *temp;
+	while(head!=NULL){
+		temp=head->next;
+		free(head);
+		head=temp;
+	}
+}
