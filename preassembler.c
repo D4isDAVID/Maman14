@@ -44,7 +44,7 @@ int notWhiteSpace(char line[], int i, int count) {
 
 
 FILE *preassembler(FILE *fd, char *nameF){
-	int i=0,flag=0,count,read=0,countline;
+	int i=0,flag=0,count,read=0,countline,width=0;
 	fpos_t end;
 	char line[82],*name,*nameFN,*data;
 	FILE *fp;
@@ -76,7 +76,10 @@ FILE *preassembler(FILE *fd, char *nameF){
 			name[count]='\0';
 			i+=count;
 			i=whitespace(line,i);
-			if(line[i]!='\n'){
+			if(line[i]!='\n' || count==0 || !isEmpty(lookup(name))){
+				if(count==0 || !isEmpty(lookup(name))){
+					fprintf(stderr,"error illegal or used name->%s\n",name);
+				}
 				fputs(line,fp);
 				free(name);
 				flag=0;
@@ -121,6 +124,7 @@ FILE *preassembler(FILE *fd, char *nameF){
 		}
 		else{
 			i=0;
+			width=0;			
 			while(i<strlen(line)){
 				while(isspace(line[i]) && i<strlen(line)-1){
 					fputc(line[i],fp);
@@ -131,15 +135,19 @@ FILE *preassembler(FILE *fd, char *nameF){
 				strncpy(name,&line[i],count);
 				name[count]='\0';
 				i+=count;
-				if(!isEmpty(lookup(name)))
-					sort(lookup(name),line,i-count,fp);		
+				if(!isEmpty(lookup(name))){
+					sort(lookup(name),line,i-count-width,fp);	
+					width=i;
+				}	
 				else if(!isEmpty(name))
 					fputs(name,fp);
-				if(i==strlen(line)-1 && !isEmpty(lookup(name)))
-					i++;
-				else if(i==strlen(line)-1){
-					fputc(line[i],fp);
-					i++;
+				if(i==strlen(line)-1){
+					if(!isEmpty(lookup(name)))
+						i++;
+					else{
+						fputc(line[i],fp);
+						i++;
+					}
 				}
 				free(name);
 			}
