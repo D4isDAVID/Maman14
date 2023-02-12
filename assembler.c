@@ -1,4 +1,6 @@
-#include "preassembler.c"
+#include <stdio.h>
+#include <stdlib.h>
+#include "preassembler.h"
 
 int main(int argc, char**argv){
 	int i;

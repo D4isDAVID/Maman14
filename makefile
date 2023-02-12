@@ -1,8 +1,6 @@
-assembler: assembler.o preassembler.o mlist.o
-	gcc -g -ansi -Wall -pedantic assembler.o -o assembler 
-assembler.o: assembler.c
-	gcc -g -c -ansi -Wall -pedantic assembler.c -o assembler.o
-preassembler.o: preassembler.c
-	gcc -g -c -ansi -Wall -pedantic preassembler.c -o preassembler.o
-mlist.o: mlist.c
-	gcc -g -c -ansi -Wall -pedantic mlist.c -o mlist.o	
+assembler: assembler.c preassembler.o mlist.o
+	gcc -ansi -Wall -pedantic assembler.c preassembler.o mlist.o -o assembler
+preassembler.o: preassembler.c preassembler.h
+	gcc -c -ansi -Wall -pedantic preassembler.c -o preassembler.o
+mlist.o: mlist.c mlist.h
+	gcc -c -ansi -Wall -pedantic mlist.c -o mlist.o

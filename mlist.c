@@ -1,4 +1,6 @@
-#include "functions.h"
+#include <stdlib.h>
+#include <string.h>
+#include "mlist.h"
 
 struct mlist {
 	struct mlist *next;

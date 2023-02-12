@@ -1,4 +1,9 @@
-#include "mlist.c"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
+#include "mlist.h"
+#include "preassembler.h"
 
 void sort(char *data,char *sours,int length, FILE *fp){
 	int lines=0,i=0,ind;
