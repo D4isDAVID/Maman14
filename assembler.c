@@ -11,7 +11,7 @@ int main(int argc, char **argv) {
 	for (i = 1; i < argc; i++) {
 		temp = fopen(argv[i], "r");
 		if (temp == NULL) {
-			fprintf(stderr, "error in opening %s.as\n", argv[i]);
+			fprintf(stderr, "Error in opening %s.as\n", argv[i]);
 			return 1;
 		}
 		file = preassembler(temp, argv[i]);
