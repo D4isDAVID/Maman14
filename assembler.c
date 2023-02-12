@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <string.h>
 #include "preassembler.h"
 
 int main(int argc, char **argv) {
@@ -9,11 +10,13 @@ int main(int argc, char **argv) {
 		return 1;
 	}
 	for (i = 1; i < argc; i++) {
+		strcat(argv[i], ".as");
 		as = fopen(argv[i], "r");
 		if (as == NULL) {
-			fprintf(stderr, "Error in opening %s.as\n", argv[i]);
+			fprintf(stderr, "Error in opening %s\n", argv[i]);
 			return 1;
 		}
+		*strrchr(argv[i], '.') = '\0'; /* the file extension is no longer needed */
 		am = preassembler(as, argv[i]);
 		fclose(as);
 	}
