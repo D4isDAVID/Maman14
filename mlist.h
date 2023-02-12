@@ -1,3 +1,3 @@
-void addNode(char *name,char *content);
-char *lookup(char *s);
-void clear();
+void mlist_add(char *name,char *content);
+char *mlist_lookup(char *s);
+void mlist_clear();

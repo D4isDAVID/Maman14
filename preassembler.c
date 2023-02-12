@@ -30,17 +30,13 @@ void sort(char *data,char *sours,int length, FILE *fp){
 	}
 }
 
-int isEmpty(char *str){
-	return str==NULL;
-}
-
-int whitespace(char line[], int i) {
+int skipwhitespace(char line[], int i) {
 	for (; line[i] == ' ' || line[i] == '\t'; i++)
 	        ;
      	return i;
 }
 
-int notWhiteSpace(char line[], int i, int count) {
+int countnonwhitespace(char line[], int i, int count) {
 	for (;!isspace(line[i]); i++,count++)
 	        ;
      	return count;	
@@ -59,28 +55,28 @@ FILE *preassembler(FILE *fd, char *nameF){
 	fp=fopen(nameFN,"w+");
 	free(nameFN);
 	while(fgets(line,82,fd)!=NULL){
-		i=whitespace(line,0);
-		count=notWhiteSpace(line,i,0);
+		i=skipwhitespace(line,0);
+		count=countnonwhitespace(line,i,0);
 		if(line[i+count-1]==':' && flag==1){
 			i+=count;
-			i=whitespace(line,i);
-			count=notWhiteSpace(line,i,0);
+			i=skipwhitespace(line,i);
+			count=countnonwhitespace(line,i,0);
 		}
 		if(strncmp(&line[i],"mcr ",count+1)==0){
 			i+=count;
-			i=whitespace(line,i);
+			i=skipwhitespace(line,i);
 			if(line[i]=='\n'){
 				fputs(line,fp);
 				flag=0;
 				continue;
 			}
 			count=0;
-			count=notWhiteSpace(line,i,0);
+			count=countnonwhitespace(line,i,0);
 			name=(char *)malloc(sizeof(char)*(count+1));
 			strncpy(name,&line[i],count);
 			name[count]='\0';
 			i+=count;
-			i=whitespace(line,i);
+			i=skipwhitespace(line,i);
 			if(line[i]!='\n' || count==0){
 				fputs(line,fp);
 				free(name);
@@ -97,7 +93,7 @@ FILE *preassembler(FILE *fd, char *nameF){
 				countline++;
 			if(strncmp(&line[i],"endmcr",count)==0){
 				i+=count;
-				i=whitespace(line,i);
+				i=skipwhitespace(line,i);
 				if(line[i]=='\n'){
 					read++;
 					if(read!=2)
@@ -105,7 +101,7 @@ FILE *preassembler(FILE *fd, char *nameF){
 					if(read==1)
 						data=(char *)malloc(sizeof(char)*(countline*81+1));
 					else if(read==2){
-						addNode(name,data);
+						mlist_add(name,data);
 						free(name);
 						free(data);
 						read=0;
@@ -132,19 +128,19 @@ FILE *preassembler(FILE *fd, char *nameF){
 					fputc(line[i],fp);
 					i++;
 				}
-				count=notWhiteSpace(line,i,0);
+				count=countnonwhitespace(line,i,0);
 				name=(char *)malloc(sizeof(char)*(count+1));
 				strncpy(name,&line[i],count);
 				name[count]='\0';
 				i+=count;
-				if(!isEmpty(lookup(name))){
-					sort(lookup(name),line,i-count-width,fp);	
+				if(mlist_lookup(name) != NULL){
+					sort(mlist_lookup(name),line,i-count-width,fp);	
 					width=i;
 				}	
-				else if(!isEmpty(name))
+				else if(name != NULL)
 					fputs(name,fp);
 				if(i==strlen(line)-1){
-					if(!isEmpty(lookup(name)))
+					if(mlist_lookup(name) != NULL)
 						i++;
 					else{
 						fputc(line[i],fp);
@@ -155,6 +151,6 @@ FILE *preassembler(FILE *fd, char *nameF){
 			}
 		}
 	}
-	clear();
+	mlist_clear();
 	return fp;
 }

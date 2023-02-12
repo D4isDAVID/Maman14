@@ -10,7 +10,7 @@ struct mlist {
 
 static struct mlist *head = NULL;
 
-void addNode(char *name, char *content) {
+void mlist_add(char *name, char *content) {
 	struct mlist *temp;
 	if (head == NULL) {
 		head = (struct mlist *) malloc(sizeof(struct mlist));
@@ -30,7 +30,7 @@ void addNode(char *name, char *content) {
 	}
 }
 
-char *lookup(char *s) {
+char *mlist_lookup(char *s) {
 	struct mlist *np;
 	np = head;
 	while (np != NULL) {
@@ -41,7 +41,7 @@ char *lookup(char *s) {
 	return NULL;
 }
 
-void clear() {
+void mlist_clear() {
 	struct mlist *temp;
 	while (head != NULL) {
 		temp = head->next;
