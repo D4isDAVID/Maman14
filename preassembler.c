@@ -76,10 +76,7 @@ FILE *preassembler(FILE *fd, char *nameF){
 			name[count]='\0';
 			i+=count;
 			i=whitespace(line,i);
-			if(line[i]!='\n' || count==0 || !isEmpty(lookup(name))){
-				if(count==0 || !isEmpty(lookup(name))){
-					fprintf(stderr,"error illegal or used name->%s\n",name);
-				}
+			if(line[i]!='\n' || count==0){
 				fputs(line,fp);
 				free(name);
 				flag=0;
