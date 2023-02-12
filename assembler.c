@@ -1,5 +1,4 @@
 #include <stdio.h>
-#include <stdlib.h>
 #include "preassembler.h"
 
 int main(int argc, char **argv) {
@@ -13,7 +12,7 @@ int main(int argc, char **argv) {
 		temp = fopen(argv[i+1], "r");
 		if (temp == NULL) {
 			fprintf(stderr, "error in opening %s.as\n", argv[i+1]);
-			exit(1);
+			return 1;
 		}
 		file = preassembler(temp, argv[i+1]);
 		fclose(temp);
