@@ -5,8 +5,8 @@
 #include "mlist.h"
 #include "preassembler.h"
 
-void sort(char *data, char *sours, int length, FILE *fp) {
-	int lines=0, i=0, ind;
+void sort(char *data, char *sours, int length, FILE *am) {
+	int lines = 0, i = 0, ind;
 	char *space;
 	while (i < strlen(data)) {
 		if (lines != 0 && length != 0) {
@@ -16,14 +16,14 @@ void sort(char *data, char *sours, int length, FILE *fp) {
 				if (!isspace(space[ind]))
 					space[ind] = ' ';
 			space[length] = '\0';
-			fputs(space, fp);
+			fputs(space, am);
 			free(space);
 		}
 		while (data[i] != '\n') {
-			fputc(data[i], fp);
+			fputc(data[i], am);
 			i++;
 		}
-		fputc(data[i], fp);
+		fputc(data[i], am);
 		i++;
 		lines++;
 	}
@@ -41,19 +41,14 @@ int countnonwhitespace(char line[], int i, int count) {
     return count;	
 }
 
-
-
-FILE *preassembler(FILE *fd, char *nameF) {
+FILE *preassembler(FILE *as, char *filename) {
 	int i = 0, flag = 0, count, read = 0, countline, width = 0;
 	fpos_t end;
-	char line[82], *name, *nameFN, *data;
-	FILE *fp;
-	nameFN = (char *) malloc(sizeof(char) * (strlen(nameF)+4));
-	strcat(nameFN, nameF);
-	strcat(nameFN, ".am");
-	fp = fopen(nameFN, "w+");
-	free(nameFN);
-	while (fgets(line,82,fd) != NULL) {
+	char line[82], *name, *data;
+	FILE *am;
+	strcat(filename, ".am");
+	am = fopen(filename, "w");
+	while (fgets(line, 82, as) != NULL) {
 		i = skipwhitespace(line, 0);
 		count = countnonwhitespace(line, i, 0);
 		if (line[i+count-1] == ':' && flag == 1) {
@@ -65,7 +60,7 @@ FILE *preassembler(FILE *fd, char *nameF) {
 			i += count;
 			i = skipwhitespace(line, i);
 			if (line[i] == '\n') {
-				fputs(line, fp);
+				fputs(line, am);
 				flag = 0;
 				continue;
 			}
@@ -77,11 +72,11 @@ FILE *preassembler(FILE *fd, char *nameF) {
 			i += count;
 			i = skipwhitespace(line,i);
 			if (line[i] != '\n' || count == 0) {
-				fputs(line,fp);
+				fputs(line, am);
 				free(name);
 				flag=0;
 			} else {
-				fgetpos(fd,&end);
+				fgetpos(as,&end);
 				flag=1;	
 				countline=0;
 			}
@@ -94,11 +89,11 @@ FILE *preassembler(FILE *fd, char *nameF) {
 				if (line[i] == '\n') {
 					read++;
 					if (read != 2)
-						fsetpos(fd, &end);
+						fsetpos(as, &end);
 					if (read == 1)
 						data = (char *) malloc(sizeof(char) * (countline*81 + 1));
 					else if (read == 2) {
-						mlist_add(name,data);
+						mlist_add(name, data);
 						free(name);
 						free(data);
 						read=0;
@@ -113,7 +108,7 @@ FILE *preassembler(FILE *fd, char *nameF) {
 			width = 0;			
 			while (i < strlen(line)) {
 				while (isspace(line[i]) && i < strlen(line)-1) {
-					fputc(line[i], fp);
+					fputc(line[i], am);
 					i++;
 				}
 				count = countnonwhitespace(line, i, 0);
@@ -122,15 +117,15 @@ FILE *preassembler(FILE *fd, char *nameF) {
 				name[count] = '\0';
 				i += count;
 				if (mlist_lookup(name) != NULL) {
-					sort(mlist_lookup(name), line, i-count-width, fp);	
+					sort(mlist_lookup(name), line, i-count-width, am);	
 					width = i;
 				} else if (name != NULL)
-					fputs(name,fp);
+					fputs(name, am);
 				if (i == strlen(line)-1) {
 					if (mlist_lookup(name) != NULL)
 						i++;
 					else {
-						fputc(line[i], fp);
+						fputc(line[i], am);
 						i++;
 					}
 				}
@@ -139,5 +134,7 @@ FILE *preassembler(FILE *fd, char *nameF) {
 		}
 	}
 	mlist_clear();
-	return fp;
+	fclose(am);
+	am = fopen(filename, "r");
+	return am;
 }
