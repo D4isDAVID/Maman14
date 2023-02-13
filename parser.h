@@ -1,2 +1,2 @@
-int skipwhitespace(char line[], int *i);
-int countnonwhitespace(char line[], int *i);
+int skipwhitespace(char [], int *);
+int countnonwhitespace(char [], int *);

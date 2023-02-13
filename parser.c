@@ -1,5 +1,7 @@
 /* utility parsing functions */
 
+#include "parser.h"
+
 int isvalidspace(char c)
 {
 	return c == ' ' || c == '\t';
