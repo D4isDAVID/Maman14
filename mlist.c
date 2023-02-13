@@ -13,10 +13,8 @@ static struct mlist *head = NULL;
 
 void mlist_add(char *name, char *content) {
 	struct mlist *temp = (struct mlist *) malloc(sizeof(struct mlist));
-	temp->name = (char *) malloc(sizeof(char) * strlen(name));
-	temp->name = strcpy(temp->name, name);
-	temp->content = (char *) malloc(sizeof(char) * strlen(content));
-	temp->content = strcpy(temp->content, content);
+	temp->name = strdup(name);
+	temp->content = strdup(content);
 	temp->next = head;
 	head = temp;
 }
