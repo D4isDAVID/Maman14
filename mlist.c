@@ -1,3 +1,4 @@
+/* preassembler macro list */
 #include <stdlib.h>
 #include <string.h>
 #include "mlist.h"

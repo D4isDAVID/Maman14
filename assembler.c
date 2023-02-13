@@ -1,3 +1,4 @@
+/* program entry point */
 #include <stdio.h>
 #include <string.h>
 #include "preassembler.h"
