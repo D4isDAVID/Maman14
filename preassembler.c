@@ -13,6 +13,7 @@ int isvalidmcr(char *, int *, int *, char **);
 int isvalidendmcr(char *, int *, int *);
 char *getmacrocontentptr(FILE *);
 
+/* preassembler entry point */
 FILE *preassembler(FILE *as, char *filename) {
 	char line[MAX_LINE_LENGTH + 2], /* current source code line including null terminator and possible newline */
 		*macroname, /*  name name in current macro definition */
@@ -70,6 +71,8 @@ char *getmacrocontentptr(FILE *as)
 	return (char *) malloc(sizeof(char) * ((MAX_LINE_LENGTH + 1) * lines) + 1);
 }
 
+/* returns whether the given line at the current location is a valid `mcr` statement
+	the value of `macroname` may be changed regardless of the result */
 int isvalidmcr(char *line, int *i, int *count, char **macroname)
 {
 	if (*count != sizeof(MCR)-1 || strncmp(MCR, &line[(*i)-(*count)], *count) != 0)
@@ -83,6 +86,7 @@ int isvalidmcr(char *line, int *i, int *count, char **macroname)
 	return countnonwhitespace(line, i) == 0;
 }
 
+/* returns whether the given line at the current location is a valid `endmcr` statement */
 int isvalidendmcr(char *line, int *i, int *count)
 {
 	if (*count != sizeof(ENDMCR)-1 || strncmp(ENDMCR, &line[(*i)-(*count)], *count) != 0)
