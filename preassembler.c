@@ -33,8 +33,9 @@ FILE *preassembler(FILE *as, char *filename) {
 				macrocontent = getmacrocontentptr(as);
 				macrodef = 1;
 			} else {
-				macroname = (char *) malloc(sizeof(char) * count);
+				macroname = (char *) malloc(sizeof(char) * (count+1));
 				strncpy(macroname, &line[i-count], count);
+				macroname[count] = '\0';
 				if ((macrocontent = mlist_lookup(macroname)) != NULL)
 					fputs(macrocontent, am);
 				else
@@ -87,8 +88,9 @@ int isvalidmcr(char *line, int *i, int *count, char **macroname)
 		return 0;
 	if ((*count = countnonwhitespace(line, i)) == 0)
 		return 0;
-	*macroname = (char *) malloc(sizeof(char) * (*count));
+	*macroname = (char *) malloc(sizeof(char) * ((*count)+1));
 	strncpy(*macroname, &line[(*i)-(*count)], *count);
+	(*macroname)[(*count)+1] = '\0';
 	skipwhitespace(line, i);
 	return countnonwhitespace(line, i) == 0;
 }
