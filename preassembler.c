@@ -39,6 +39,7 @@ FILE *preassembler(FILE *as, char *filename) {
 			if (isvalidendmcr(line, &i, &count)) {
 				macrodef = 0;
 				mlist_add(macroname, macrocontent);
+				free(macrocontent);
 			} else
 				strcat(macrocontent, line);
 	}
