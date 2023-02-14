@@ -28,6 +28,8 @@ FILE *preassembler(FILE *as, char *filename) {
 		i = 0;
 		skipwhitespace(line, &i);
 		count = countnonwhitespace(line, &i);
+		if (count == 0 || line[i-count] == ';')
+			continue;
 		if (!macrodef)
 			if (isvalidmcr(line, &i, &count, &macroname)) {
 				macrocontent = getmacrocontentptr(as);
