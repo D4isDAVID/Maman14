@@ -1,4 +1,7 @@
-#include "functions.h"
+/* preassembler macro list */
+#include <stdlib.h>
+#include <string.h>
+#include "mlist.h"
 
 struct mlist {
 	struct mlist *next;
@@ -6,44 +9,35 @@ struct mlist {
 	char *content;
 };
 
-static struct mlist *head=NULL;
+static struct mlist *head = NULL;
 
-void addNode(char *name,char *content){
-	struct mlist *temp;
-	if(head==NULL){
-		head=(struct mlist *)malloc(sizeof(struct mlist));
-		head->name=(char *)malloc(sizeof(char)*strlen(name));
-		head->name=strcpy(head->name,name);
-		head->content=(char *)malloc(sizeof(char)*strlen(content));
-		head->content=strcpy(head->content,content);
-		head->next=NULL;
-	}
-	else{
-		temp=(struct mlist *)malloc(sizeof(struct mlist));
-		temp->name=(char *)malloc(sizeof(char)*strlen(name));
-		temp->name=strcpy(temp->name,name);
-		temp->content=(char *)malloc(sizeof(char)*strlen(content));
-		temp->content=strcpy(temp->content,content);
-		temp->next=head;
-		head=temp;
-	}
+/* adds a new item into the list */
+void mlist_add(char *name, char *content) {
+	struct mlist *temp = (struct mlist *) malloc(sizeof(struct mlist));
+	temp->name = strdup(name);
+	temp->content = strdup(content);
+	temp->next = head;
+	head = temp;
 }
-char *lookup(char *s){
-	struct mlist *np;
-	np=head;
-	while(np!=NULL){
-		if(strcmp(s,np->name)==0)
+
+/* searches for an item in the list with the given name and returns the associated value.
+	returns `NULL` if an item was not found */
+char *mlist_lookup(char *name) {
+	struct mlist *np = head;
+	while (np != NULL) {
+		if (strcmp(name, np->name) == 0)
 			return np->content;
-		np=np->next;
-	} 
+		np = np->next;
+	}
 	return NULL;
-
 }
-void clear(){
+
+/* frees all items in the entire list */
+void mlist_clear() {
 	struct mlist *temp;
-	while(head!=NULL){
-		temp=head->next;
+	while (head != NULL) {
+		temp = head->next;
 		free(head);
-		head=temp;
+		head = temp;
 	}
 }

@@ -1,2 +1,6 @@
+# Executables
 assembler
 *.o
+
+# VSCode folder
+.vscode/
