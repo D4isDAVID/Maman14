@@ -1,4 +1,4 @@
-CCX = gcc -Wall -ansi -pedantic
+CCX := gcc -Wall -ansi -pedantic
 
 assembler: assembler.c preassembler.o parser.o mlist.o
 	$(CCX) assembler.c preassembler.o parser.o mlist.o -o assembler
