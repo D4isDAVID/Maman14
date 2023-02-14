@@ -13,9 +13,11 @@ static struct mlist *head = NULL;
 
 /* adds a new item into the list */
 void mlist_add(char *name, char *content) {
-	struct mlist *temp = (struct mlist *) malloc(sizeof(struct mlist));
-	temp->name = strdup(name);
-	temp->content = strdup(content);
+	struct mlist *temp = (struct mlist *) malloc(sizeof(temp));
+	temp->name = (char *) malloc(sizeof(char) * strlen(name));
+	strcpy(temp->name, name);
+	temp->content = (char *) malloc(sizeof(char) * strlen(content));
+	strcpy(temp->content, content);
 	temp->next = head;
 	head = temp;
 }
@@ -37,6 +39,8 @@ void mlist_clear() {
 	struct mlist *temp;
 	while (head != NULL) {
 		temp = head->next;
+		free(head->name);
+		free(head->content);
 		free(head);
 		head = temp;
 	}

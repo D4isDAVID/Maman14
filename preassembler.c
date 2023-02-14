@@ -32,14 +32,21 @@ FILE *preassembler(FILE *as, char *filename) {
 			if (isvalidmcr(line, &i, &count, &macroname)) {
 				macrocontent = getmacrocontentptr(as);
 				macrodef = 1;
-			} else if ((macrocontent = mlist_lookup(strndup(&line[i-count], count))) != NULL)
-				fputs(macrocontent, am);
-			else
-				fputs(line, am);
+			} else {
+				macroname = (char *) malloc(sizeof(char) * (count+1));
+				strncpy(macroname, &line[i-count], count);
+				macroname[count] = '\0';
+				if ((macrocontent = mlist_lookup(macroname)) != NULL)
+					fputs(macrocontent, am);
+				else
+					fputs(line, am);
+				free(macroname);
+			}
 		else
 			if (isvalidendmcr(line, &i, &count)) {
 				macrodef = 0;
 				mlist_add(macroname, macrocontent);
+				free(macroname);
 				free(macrocontent);
 			} else
 				strcat(macrocontent, line);
@@ -81,7 +88,9 @@ int isvalidmcr(char *line, int *i, int *count, char **macroname)
 		return 0;
 	if ((*count = countnonwhitespace(line, i)) == 0)
 		return 0;
-	*macroname = strndup(&line[(*i)-(*count)], *count);
+	*macroname = (char *) malloc(sizeof(char) * ((*count)+1));
+	strncpy(*macroname, &line[(*i)-(*count)], *count);
+	(*macroname)[(*count)+1] = '\0';
 	skipwhitespace(line, i);
 	return countnonwhitespace(line, i) == 0;
 }
