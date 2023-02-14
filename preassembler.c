@@ -2,140 +2,90 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <ctype.h>
 #include "mlist.h"
+#include "parser.h"
 #include "preassembler.h"
 
-void sort(char *data, char *sours, int length, FILE *am) {
-	int lines = 0, i = 0, ind;
-	char *space;
-	while (i < strlen(data)) {
-		if (lines != 0 && length != 0) {
-			space = (char *) malloc(sizeof(char) * (length+1));
-			strncpy(space, sours, length);
-			for (ind = 0; ind < length; ind++)
-				if (!isspace(space[ind]))
-					space[ind] = ' ';
-			space[length] = '\0';
-			fputs(space, am);
-			free(space);
-		}
-		while (data[i] != '\n') {
-			fputc(data[i], am);
-			i++;
-		}
-		fputc(data[i], am);
-		i++;
-		lines++;
-	}
-}
+#define MCR "mcr"
+#define ENDMCR "endmcr"
 
-int skipwhitespace(char line[], int i) {
-	for (; line[i] == ' ' || line[i] == '\t'; i++)
-	    ;
-    return i;
-}
-
-int countnonwhitespace(char line[], int i, int count) {
-	for (; !isspace(line[i]); i++, count++)
-	    ;
-    return count;	
-}
+int isvalidmcr(char *, int *, int *, char **);
+int isvalidendmcr(char *, int *, int *);
+char *getmacrocontentptr(FILE *);
 
 FILE *preassembler(FILE *as, char *filename) {
-	int i = 0, flag = 0, count, read = 0, countline, width = 0;
-	fpos_t end;
-	char line[82], *name, *data;
+	char line[MAX_LINE_LENGTH + 2], /* current source code line including null terminator and possible newline */
+		*macroname, /*  name name in current macro definition */
+		*macrocontent; /* macro content in current macro definition or replacement */
+	int i, /* current character in current line */
+		count, /* results from `skipwhitespace` and `countnonwhitespace` */
+		macrodef = 0; /* whether we are in a macro definition */
 	FILE *am;
 	strcat(filename, ".am");
-	am = fopen(filename, "w");
-	while (fgets(line, 82, as) != NULL) {
-		i = skipwhitespace(line, 0);
-		count = countnonwhitespace(line, i, 0);
-		if (line[i+count-1] == ':' && flag == 1) {
-			i += count;
-			i = skipwhitespace(line, i);
-			count = countnonwhitespace(line, i, 0);
-		}
-		if (strncmp(&line[i], "mcr ", count+1) == 0) {
-			i += count;
-			i = skipwhitespace(line, i);
-			if (line[i] == '\n') {
+	am = fopen(filename, "w+");
+	while (fgets(line, MAX_LINE_LENGTH + 2, as) != NULL) {
+		i = 0;
+		skipwhitespace(line, &i);
+		count = countnonwhitespace(line, &i);
+		if (!macrodef)
+			if (isvalidmcr(line, &i, &count, &macroname)) {
+				macrocontent = getmacrocontentptr(as);
+				macrodef = 1;
+			} else if ((macrocontent = mlist_lookup(strndup(&line[i-count], count))) != NULL)
+				fputs(macrocontent, am);
+			else
 				fputs(line, am);
-				flag = 0;
-				continue;
-			}
-			count = 0;
-			count = countnonwhitespace(line,i,0);
-			name = (char *) malloc(sizeof(char) * (count+1));
-			strncpy(name, &line[i], count);
-			name[count] = '\0';
-			i += count;
-			i = skipwhitespace(line,i);
-			if (line[i] != '\n' || count == 0) {
-				fputs(line, am);
-				free(name);
-				flag=0;
-			} else {
-				fgetpos(as,&end);
-				flag=1;	
-				countline=0;
-			}
-		} else if (flag == 1 && read < 2) {
-			if (read == 0)
-				countline++;
-			if (strncmp(&line[i], "endmcr", count) == 0) {
-				i += count;
-				i = skipwhitespace(line, i);
-				if (line[i] == '\n') {
-					read++;
-					if (read != 2)
-						fsetpos(as, &end);
-					if (read == 1)
-						data = (char *) malloc(sizeof(char) * (countline*81 + 1));
-					else if (read == 2) {
-						mlist_add(name, data);
-						free(name);
-						free(data);
-						read=0;
-						flag=0;
-					}
-				} else if (read != 0)
-					strcat(data, &line[count]);
-			} else if (read != 0)
-				strcat(data, &line[i]);
-		} else {
-			i = 0;
-			width = 0;			
-			while (i < strlen(line)) {
-				while (isspace(line[i]) && i < strlen(line)-1) {
-					fputc(line[i], am);
-					i++;
-				}
-				count = countnonwhitespace(line, i, 0);
-				name = (char *) malloc(sizeof(char) * (count+1));
-				strncpy(name, &line[i], count);
-				name[count] = '\0';
-				i += count;
-				if (mlist_lookup(name) != NULL) {
-					sort(mlist_lookup(name), line, i-count-width, am);	
-					width = i;
-				} else if (name != NULL)
-					fputs(name, am);
-				if (i == strlen(line)-1) {
-					if (mlist_lookup(name) != NULL)
-						i++;
-					else {
-						fputc(line[i], am);
-						i++;
-					}
-				}
-				free(name);
-			}
-		}
+		else
+			if (isvalidendmcr(line, &i, &count)) {
+				macrodef = 0;
+				mlist_add(macroname, macrocontent);
+			} else
+				strcat(macrocontent, line);
 	}
 	mlist_clear();
 	fclose(am);
 	am = fopen(filename, "r");
 	return am;
+}
+
+/* counts amount of lines until nearest `endmcr` and returns a string with enough memory for content of the macro */
+char *getmacrocontentptr(FILE *as)
+{
+	char line[MAX_LINE_LENGTH + 2]; /* current line in file */
+	int i, /* current character in current line */
+		lines = 0, /* amount of lines before nearest `endmcr` */
+		count = 0; /* results from `skipwhitespace` and `countnonwhitespace` */
+	fpos_t p; /* save current position to return to after counting lines */
+	fgetpos(as, &p);
+	while (fgets(line, MAX_LINE_LENGTH + 2, as) != NULL) {
+		i = 0;
+		skipwhitespace(line, &i);
+		count = countnonwhitespace(line, &i);
+		if (isvalidendmcr(line, &i, &count))
+			break;
+		lines++;
+	}
+	fsetpos(as, &p);
+	return (char *) malloc(sizeof(char) * ((MAX_LINE_LENGTH + 1) * lines) + 1);
+}
+
+int isvalidmcr(char *line, int *i, int *count, char **macroname)
+{
+	if (*count != sizeof(MCR)-1 || strncmp(MCR, &line[(*i)-(*count)], *count) != 0)
+		return 0;
+	if (skipwhitespace(line, i) == 0)
+		return 0;
+	if ((*count = countnonwhitespace(line, i)) == 0)
+		return 0;
+	*macroname = strndup(&line[(*i)-(*count)], *count);
+	skipwhitespace(line, i);
+	return countnonwhitespace(line, i) == 0;
+}
+
+int isvalidendmcr(char *line, int *i, int *count)
+{
+	if (*count != sizeof(ENDMCR)-1 || strncmp(ENDMCR, &line[(*i)-(*count)], *count) != 0)
+		return 0;
+	skipwhitespace(line, i);
+	return countnonwhitespace(line, i) == 0;
 }
