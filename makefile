@@ -12,4 +12,4 @@ mlist.o: mlist.c mlist.h
 .PHONY: clean
 
 clean:
-	rm *.o assembler
+	rm -f *.o assembler
