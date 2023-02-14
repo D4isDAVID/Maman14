@@ -14,7 +14,8 @@ int isvalidendmcr(char *, int *, int *);
 char *getmacrocontentptr(FILE *);
 
 /* preassembler entry point */
-FILE *preassembler(FILE *as, char *filename) {
+FILE *preassembler(FILE *as, char *filename)
+{
 	char line[MAX_LINE_LENGTH + 2], /* current source code line including null terminator and possible newline */
 		*macroname, /*  name name in current macro definition */
 		*macrocontent; /* macro content in current macro definition or replacement */

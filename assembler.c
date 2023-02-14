@@ -3,7 +3,8 @@
 #include <string.h>
 #include "preassembler.h"
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv)
+{
 	int i;
 	FILE *as, *am;
 	if (argc == 1) {

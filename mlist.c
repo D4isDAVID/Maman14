@@ -12,7 +12,8 @@ struct mlist {
 static struct mlist *head = NULL;
 
 /* adds a new item into the list */
-void mlist_add(char *name, char *content) {
+void mlist_add(char *name, char *content)
+{
 	struct mlist *temp = (struct mlist *) malloc(sizeof(temp));
 	temp->name = (char *) malloc(sizeof(char) * strlen(name));
 	strcpy(temp->name, name);
@@ -24,7 +25,8 @@ void mlist_add(char *name, char *content) {
 
 /* searches for an item in the list with the given name and returns the associated value.
 	returns `NULL` if an item was not found */
-char *mlist_lookup(char *name) {
+char *mlist_lookup(char *name)
+{
 	struct mlist *np = head;
 	while (np != NULL) {
 		if (strcmp(name, np->name) == 0)
@@ -35,7 +37,8 @@ char *mlist_lookup(char *name) {
 }
 
 /* frees all items in the entire list */
-void mlist_clear() {
+void mlist_clear()
+{
 	struct mlist *temp;
 	while (head != NULL) {
 		temp = head->next;
