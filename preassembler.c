@@ -1,10 +1,11 @@
 /* preassembler code */
+#include "preassembler.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include "mlist.h"
 #include "parser.h"
-#include "preassembler.h"
 
 #define MCR "mcr"
 #define ENDMCR "endmcr"

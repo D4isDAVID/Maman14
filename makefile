@@ -10,6 +10,5 @@ mlist.o: mlist.c mlist.h
 	$(CCX) -c mlist.c -o mlist.o
 
 .PHONY: clean
-
 clean:
 	rm -f *.o assembler
