@@ -4,6 +4,7 @@
 #include <string.h>
 #include "preassembler.h"
 #include "parser.h"
+#include "firstpass.h"
 
 int main(int argc, char **argv)
 {
@@ -28,6 +29,7 @@ int main(int argc, char **argv)
 			remove(argv[i]);
 			continue;
 		}
+		firstpass(am);
 	}
 	return 0;
 }
