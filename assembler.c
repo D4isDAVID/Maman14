@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "preassembler.h"
+#include "parser.h"
 
 int main(int argc, char **argv)
 {
@@ -22,6 +23,11 @@ int main(int argc, char **argv)
 		*strrchr(argv[i], '.') = '\0'; /* the file extension is no longer needed */
 		am = preassembler(as, argv[i]);
 		fclose(as);
+		if (isfileempty(am)) {
+			fclose(am);
+			remove(argv[i]);
+			continue;
+		}
 	}
 	return 0;
 }
