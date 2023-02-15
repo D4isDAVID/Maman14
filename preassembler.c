@@ -1,10 +1,11 @@
 /* preassembler code */
+#include "preassembler.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "mlist.h"
+#include "hashmap.h"
 #include "parser.h"
-#include "preassembler.h"
 
 #define MCR "mcr"
 #define ENDMCR "endmcr"
@@ -14,13 +15,15 @@ int isvalidendmcr(char *, int *, int *);
 char *getmacrocontentptr(FILE *);
 
 /* preassembler entry point */
-FILE *preassembler(FILE *as, char *filename) {
+FILE *preassembler(FILE *as, char *filename)
+{
 	char line[MAX_LINE_LENGTH + 2], /* current source code line including null terminator and possible newline */
 		*macroname, /*  name name in current macro definition */
 		*macrocontent; /* macro content in current macro definition or replacement */
 	int i, /* current character in current line */
 		count, /* results from `skipwhitespace` and `countnonwhitespace` */
 		macrodef = 0; /* whether we are in a macro definition */
+	struct hashmap *macros = hashmap_new();
 	FILE *am;
 	strcat(filename, ".am");
 	am = fopen(filename, "w+");
@@ -28,6 +31,8 @@ FILE *preassembler(FILE *as, char *filename) {
 		i = 0;
 		skipwhitespace(line, &i);
 		count = countnonwhitespace(line, &i);
+		if (count == 0 || line[i-count] == ';')
+			continue;
 		if (!macrodef)
 			if (isvalidmcr(line, &i, &count, &macroname)) {
 				macrocontent = getmacrocontentptr(as);
@@ -36,7 +41,7 @@ FILE *preassembler(FILE *as, char *filename) {
 				macroname = (char *) malloc(sizeof(char) * (count+1));
 				strncpy(macroname, &line[i-count], count);
 				macroname[count] = '\0';
-				if ((macrocontent = mlist_lookup(macroname)) != NULL)
+				if ((macrocontent = hashmap_getstr(macros, macroname)) != NULL)
 					fputs(macrocontent, am);
 				else
 					fputs(line, am);
@@ -45,13 +50,13 @@ FILE *preassembler(FILE *as, char *filename) {
 		else
 			if (isvalidendmcr(line, &i, &count)) {
 				macrodef = 0;
-				mlist_add(macroname, macrocontent);
+				hashmap_setstr(macros, macroname, macrocontent);
 				free(macroname);
 				free(macrocontent);
 			} else
 				strcat(macrocontent, line);
 	}
-	mlist_clear();
+	hashmap_free(macros);
 	fclose(am);
 	am = fopen(filename, "r");
 	return am;
