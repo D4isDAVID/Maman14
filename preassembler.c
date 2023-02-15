@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "mlist.h"
+#include "hashmap.h"
 #include "parser.h"
 
 #define MCR "mcr"
@@ -23,6 +23,7 @@ FILE *preassembler(FILE *as, char *filename)
 	int i, /* current character in current line */
 		count, /* results from `skipwhitespace` and `countnonwhitespace` */
 		macrodef = 0; /* whether we are in a macro definition */
+	struct hashmap *macros = hashmap_new();
 	FILE *am;
 	strcat(filename, ".am");
 	am = fopen(filename, "w+");
@@ -40,7 +41,7 @@ FILE *preassembler(FILE *as, char *filename)
 				macroname = (char *) malloc(sizeof(char) * (count+1));
 				strncpy(macroname, &line[i-count], count);
 				macroname[count] = '\0';
-				if ((macrocontent = mlist_lookup(macroname)) != NULL)
+				if ((macrocontent = hashmap_getstr(macros, macroname)) != NULL)
 					fputs(macrocontent, am);
 				else
 					fputs(line, am);
@@ -49,13 +50,13 @@ FILE *preassembler(FILE *as, char *filename)
 		else
 			if (isvalidendmcr(line, &i, &count)) {
 				macrodef = 0;
-				mlist_add(macroname, macrocontent);
+				hashmap_setstr(macros, macroname, macrocontent);
 				free(macroname);
 				free(macrocontent);
 			} else
 				strcat(macrocontent, line);
 	}
-	mlist_clear();
+	hashmap_free(macros);
 	fclose(am);
 	am = fopen(filename, "r");
 	return am;
