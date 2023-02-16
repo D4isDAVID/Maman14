@@ -1,13 +1,6 @@
 /* utility parsing functions */
 #include "parser.h"
 
-/* converts the given line to a 14-bit word */
-word linetoword(char *line)
-{
-	word w;
-	return w;
-}
-
 /* returns whether the given character is either a space or a tab */
 int isvalidspace(char c)
 {
