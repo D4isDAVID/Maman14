@@ -1,5 +1,5 @@
-/* */
-#include "firstpass.h"
+/* first assembler phase */
+#include "firstphase.h"
 
 #include <string.h>
 #include "hashmap.h"
@@ -9,7 +9,8 @@ typedef struct word {
 	unsigned int field : 14;
 } word;
 
-void firstpass(FILE *am)
+/* phase entry point */
+void firstphase(FILE *am)
 {
 	char line[MAX_LINE_LENGTH + 2];
 	int i,
