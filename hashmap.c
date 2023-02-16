@@ -28,11 +28,13 @@ struct hashnode {
 
 struct hashmap {
 	struct hashnode *tab[HASHMAP_CAPACITY];
+	int size;
 };
 
 struct hashmap *hashmap_new(void)
 {
 	struct hashmap *m = (struct hashmap *) malloc(sizeof(*m));
+	m->size = 0;
 	return m;
 }
 
@@ -43,6 +45,11 @@ struct hashnode *getnode(struct hashmap *m, char *key)
 		if (strcmp(n->key, key) == 0)
 			return n;
 	return NULL;
+}
+
+int hashmap_getsize(struct hashmap *m)
+{
+	return m->size;
 }
 
 int *hashmap_getint(struct hashmap *m, char *key)
@@ -72,6 +79,7 @@ struct hashnode *preparenode(struct hashmap *m, char *key)
 		hashval = hash(key);
 		n->next = m->tab[hashval];
 		m->tab[hashval] = n;
+		m->size++;
 	} else
 		free(n->value);
 	return n;
