@@ -5,10 +5,6 @@
 #include "hashmap.h"
 #include "parser.h"
 
-typedef struct word {
-	unsigned int field : 14;
-} word;
-
 /* phase entry point */
 void firstphase(FILE *am)
 {
