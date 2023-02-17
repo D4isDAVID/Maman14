@@ -68,7 +68,7 @@ FILE *preassembler(FILE *as, char *filename)
 	hashmap_free(macros);
 	fclose(am);
 	am = fopen(filename, "r");
-	*strrchr(filename, '.') = '\0'; /* the file extension is no longer needed */
+	replaceextension(filename, "");
 	return am;
 }
 

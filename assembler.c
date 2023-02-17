@@ -22,7 +22,7 @@ int main(int argc, char **argv)
 			fprintf(stderr, "Error in opening %s\n", argv[i]);
 			return 1;
 		}
-		*strrchr(argv[i], '.') = '\0'; /* the file extension is no longer needed */
+		replaceextension(argv[i], "");
 		am = preassembler(as, argv[i]);
 		fclose(as);
 		firstphase(am, argv[i]);
