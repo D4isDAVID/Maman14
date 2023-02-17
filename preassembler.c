@@ -28,7 +28,7 @@ FILE *preassembler(FILE *as, char *filename)
 	struct hashmap *macros = hashmap_new();
 	FILE *am;
 	strcat(filename, ".am");
-	am = fopen(filename, "w+");
+	am = fopen(filename, "w");
 	while (fgets(line, MAX_LINE_LENGTH + 2, as) != NULL) {
 		lineoffset = 0;
 		i = 0;
