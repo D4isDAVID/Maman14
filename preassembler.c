@@ -22,12 +22,14 @@ FILE *preassembler(FILE *as, char *filename)
 		*macrocontent; /* macro content in current macro definition or replacement */
 	int i, /* current character in current line */
 		count, /* results from `skipwhitespace` and `countnonwhitespace` */
+		lineoffset, /* used for printing parts of the current line to avoid printing macro names */
 		macrodef = 0; /* whether we are in a macro definition */
 	struct hashmap *macros = hashmap_new();
 	FILE *am;
 	strcat(filename, ".am");
 	am = fopen(filename, "w+");
 	while (fgets(line, MAX_LINE_LENGTH + 2, as) != NULL) {
+		lineoffset = 0;
 		i = 0;
 		skipwhitespace(line, &i);
 		count = countnonwhitespace(line, &i);
@@ -38,14 +40,24 @@ FILE *preassembler(FILE *as, char *filename)
 				macrocontent = getmacrocontentptr(as);
 				macrodef = 1;
 			} else {
-				macroname = (char *) malloc(sizeof(char) * (count+1));
-				strncpy(macroname, &line[i-count], count);
-				macroname[count] = '\0';
-				if ((macrocontent = hashmap_getstr(macros, macroname)) != NULL)
-					fputs(macrocontent, am);
-				else
-					fputs(line, am);
-				free(macroname);
+				while (count > 0) {
+					macroname = (char *) malloc(sizeof(char) * (count+1));
+					strncpy(macroname, &line[i-count], count);
+					macroname[count] = '\0';
+					if ((macrocontent = hashmap_getstr(macros, macroname)) != NULL) {
+						line[i-count] = '\0'; /* to print the current line up to the macro name */
+						fputs(&line[lineoffset], am);
+						fputs(macrocontent, am); /* print the macro content */
+						lineoffset = i; /* offset the line to print the current line after the macro name */
+						if (line[i] == '\n') /* avoid double newlines */
+							line[i] = '\0';
+					}
+					free(macroname);
+					if (skipwhitespace(line, &i) == 0)
+						break;
+					count = countnonwhitespace(line, &i);
+				}
+				fputs(&line[lineoffset], am);
 			}
 		else
 			if (isvalidendmcr(line, &i, &count)) {
