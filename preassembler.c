@@ -6,6 +6,7 @@
 #include <string.h>
 #include "hashmap.h"
 #include "parser.h"
+#include "strutil.h"
 
 #define MCR "mcr"
 #define ENDMCR "endmcr"
@@ -41,9 +42,7 @@ FILE *preassembler(FILE *as, char *filename)
 				macrodef = 1;
 			} else {
 				while (count > 0) {
-					macroname = (char *) malloc(sizeof(char) * (count+1));
-					strncpy(macroname, &line[i-count], count);
-					macroname[count] = '\0';
+					macroname = strndupl(&line[i-count], count);
 					if ((macrocontent = hashmap_getstr(macros, macroname)) != NULL) {
 						line[i-count] = '\0'; /* to print the current line up to the macro name */
 						fputs(&line[lineoffset], am);
@@ -106,9 +105,7 @@ int isvalidmcr(char *line, int *i, int *count, char **macroname)
 		return 0;
 	if ((*count = countnonwhitespace(line, i)) == 0)
 		return 0;
-	*macroname = (char *) malloc(sizeof(char) * ((*count)+1));
-	strncpy(*macroname, &line[(*i)-(*count)], *count);
-	(*macroname)[(*count)+1] = '\0';
+	*macroname = strndupl(&line[(*i)-(*count)], *count);
 	skipwhitespace(line, i);
 	return countnonwhitespace(line, i) == 0;
 }

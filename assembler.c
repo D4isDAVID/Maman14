@@ -5,6 +5,7 @@
 #include "preassembler.h"
 #include "parser.h"
 #include "firstphase.h"
+#include "strutil.h"
 
 int main(int argc, char **argv)
 {
@@ -24,12 +25,17 @@ int main(int argc, char **argv)
 		*strrchr(argv[i], '.') = '\0'; /* the file extension is no longer needed */
 		am = preassembler(as, argv[i]);
 		fclose(as);
-		firstphase(am);
+		firstphase(am, argv[i]);
 		fclose(am);
 		if (isfileempty(am)) {
 			strcat(argv[i], ".am");
 			remove(argv[i]);
-			continue;
+			replaceextension(argv[i], ".ent");
+			remove(argv[i]);
+			replaceextension(argv[i], ".ext");
+			remove(argv[i]);
+			replaceextension(argv[i], ".ob");
+			remove(argv[i]);
 		}
 	}
 	return 0;
