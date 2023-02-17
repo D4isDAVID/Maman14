@@ -43,7 +43,7 @@ FILE *preassembler(FILE *as, char *filename)
 			} else {
 				while (count > 0) {
 					macroname = strndupl(&line[i-count], count);
-					if ((macrocontent = hashmap_getstr(macros, macroname)) != NULL && symbols_getsymbol(macroname) == UNKNOWN_SYMBOL) {
+					if ((macrocontent = hashmap_getstr(macros, macroname)) != NULL && symbols_get(macroname) == UNKNOWN_SYMBOL) {
 						line[i-count] = '\0'; /* to print the current line up to the macro name */
 						fputs(&line[lineoffset], am);
 						fputs(macrocontent, am); /* print the macro content */
