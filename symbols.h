@@ -64,6 +64,11 @@ enum paramamount {
 	PARAM_UNKNOWN
 };
 
+enum labeltype {
+	LABEL_ENTRY,
+	LABEL_EXTERNAL
+};
+
 void symbols_prepare(void);
 void symbols_free(void);
 
@@ -73,5 +78,6 @@ int isoperation(char *);
 int isdirective(char *);
 int isregister(char *);
 int isjumpoperation(enum symbol);
+int isdatadirective(enum symbol);
 
 #endif

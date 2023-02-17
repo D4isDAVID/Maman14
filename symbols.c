@@ -116,3 +116,9 @@ int isjumpoperation(enum symbol o)
 {
 	return o == OPCODE_JMP || o == OPCODE_BNE || o == OPCODE_JSR;
 }
+
+/* returns whether the given directive is a data directive */
+int isdatadirective(enum symbol o)
+{
+	return o == DIRECTIVE_DATA || o == DIRECTIVE_STRING;
+}
