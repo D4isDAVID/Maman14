@@ -66,6 +66,10 @@ enum paramamount {
 
 void symbols_prepare(void);
 void symbols_free(void);
+int isoperation(char *);
+int isdirective(char *);
+int isregister(char *);
+int isjumpoperation(enum symbol);
 
 enum symbol symbols_getsymbol(char *);
 enum paramamount symbols_getparamamount(enum symbol);

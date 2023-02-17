@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include "hashmap.h"
 
-struct hashmap *symbols, *operations;
+struct hashmap *symbols, *operations, *directives, *registers;
 enum paramamount *paramamounts;
 
 void symbols_prepare(void)
@@ -26,22 +26,27 @@ void symbols_prepare(void)
 	hashmap_setint(operations, "jsr", OPCODE_JSR);
 	hashmap_setint(operations, "rts", OPCODE_RTS);
 	hashmap_setint(operations, "stop", OPCODE_STOP);
-	hashmap_setint(operations, ".data", DIRECTIVE_DATA);
-	hashmap_setint(operations, ".string", DIRECTIVE_STRING);
-	hashmap_setint(operations, ".entry", DIRECTIVE_ENTRY);
-	hashmap_setint(operations, ".extern", DIRECTIVE_EXTERN);
+
+	directives = hashmap_new();
+	hashmap_setint(directives, ".data", DIRECTIVE_DATA);
+	hashmap_setint(directives, ".string", DIRECTIVE_STRING);
+	hashmap_setint(directives, ".entry", DIRECTIVE_ENTRY);
+	hashmap_setint(directives, ".extern", DIRECTIVE_EXTERN);
+
+	registers = hashmap_new();
+	hashmap_setint(registers, "r0", REGISTER_ZERO);
+	hashmap_setint(registers, "r1", REGISTER_ONE);
+	hashmap_setint(registers, "r2", REGISTER_TWO);
+	hashmap_setint(registers, "r3", REGISTER_THREE);
+	hashmap_setint(registers, "r4", REGISTER_FOUR);
+	hashmap_setint(registers, "r5", REGISTER_FIVE);
+	hashmap_setint(registers, "r6", REGISTER_SIX);
+	hashmap_setint(registers, "r7", REGISTER_SEVEN);
 
 	symbols = hashmap_new();
 	hashmap_copy(symbols, operations);
-
-	hashmap_setint(symbols, "r0", REGISTER_ZERO);
-	hashmap_setint(symbols, "r1", REGISTER_ONE);
-	hashmap_setint(symbols, "r2", REGISTER_TWO);
-	hashmap_setint(symbols, "r3", REGISTER_THREE);
-	hashmap_setint(symbols, "r4", REGISTER_FOUR);
-	hashmap_setint(symbols, "r5", REGISTER_FIVE);
-	hashmap_setint(symbols, "r6", REGISTER_SIX);
-	hashmap_setint(symbols, "r7", REGISTER_SEVEN);
+	hashmap_copy(symbols, directives);
+	hashmap_copy(symbols, registers);
 
 	paramamounts = (enum paramamount *) malloc(sizeof(*paramamounts) * hashmap_sizeof(operations));
 	paramamounts[OPCODE_MOV] = PARAM_TWO;
@@ -86,4 +91,28 @@ enum paramamount symbols_getparamamount(enum symbol op)
 	if (op >= hashmap_sizeof(operations))
 		return PARAM_UNKNOWN;
 	return paramamounts[op];
+}
+
+/* returns whether the given string represents an operation */
+int isoperation(char *s)
+{
+	return hashmap_getint(operations, s) != NULL;
+}
+
+/* returns whether the given string represents a directive */
+int isdirective(char *s)
+{
+	return hashmap_getint(directives, s) != NULL;
+}
+
+/* returns whether the given string represents a register */
+int isregister(char *s)
+{
+	return hashmap_getint(registers, s) != NULL;
+}
+
+/* returns whether the given opcode is of a jumping operation */
+int isjumpoperation(enum symbol o)
+{
+	return o == OPCODE_JMP || o == OPCODE_BNE || o == OPCODE_JSR;
 }
