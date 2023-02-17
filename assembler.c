@@ -24,12 +24,13 @@ int main(int argc, char **argv)
 		*strrchr(argv[i], '.') = '\0'; /* the file extension is no longer needed */
 		am = preassembler(as, argv[i]);
 		fclose(as);
+		firstphase(am);
+		fclose(am);
 		if (isfileempty(am)) {
-			fclose(am);
+			strcat(argv[i], ".am");
 			remove(argv[i]);
 			continue;
 		}
-		firstphase(am);
 	}
 	return 0;
 }
