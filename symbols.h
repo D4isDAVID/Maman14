@@ -42,11 +42,18 @@ enum encoding {
 	ENC_RELOCATABLE
 };
 
-enum addressmethods {
+enum addressmethod {
 	ADDRESS_INSTANT,
 	ADDRESS_DIRECT,
 	ADDRESS_JUMP_WITH_PARAMS,
-	ADDRESS_DIRECT_REGISTER
+	ADDRESS_DIRECT_REGISTER,
+	ADDRESS_ERROR
+};
+
+enum jumpparamtype {
+	INSTANT_NUMBER,
+	LABEL,
+	REGISTER = 3
 };
 
 enum paramamount {

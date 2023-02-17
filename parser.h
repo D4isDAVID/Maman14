@@ -9,6 +9,7 @@ typedef struct word {
 	unsigned int field : 14;
 } word;
 
+int determineaddressmethod(char *s);
 int isfileempty(FILE *);
 int skipwhitespace(char [], int *);
 int countnonwhitespace(char [], int *);

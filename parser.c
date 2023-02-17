@@ -1,6 +1,24 @@
 /* utility parsing functions */
 #include "parser.h"
 
+#include <ctype.h>
+#include "symbols.h"
+
+/* returns the address method of the given string */
+enum addressmethod determineaddressmethod(char *s)
+{
+	if (s[0] == '#') {
+		if (s[1] != '-' && s[1] != '+' && !isdigit(s[1]))
+			return ADDRESS_ERROR;
+		for (s = &s[2]; *s != '\0'; s++)
+			if (!isdigit(*s))
+				return ADDRESS_ERROR;
+		return ADDRESS_INSTANT;
+	} else if (s[0] == 'r' && s[1] >= '0' && s[1] <= '7' && s[2] == '\0')
+		return ADDRESS_DIRECT_REGISTER;
+	return ADDRESS_DIRECT;
+}
+
 /* returns whether the given character is either a space or a tab */
 int isvalidspace(char c)
 {
