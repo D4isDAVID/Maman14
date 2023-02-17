@@ -2,7 +2,6 @@
 #include "parser.h"
 
 #include <ctype.h>
-#include "symbols.h"
 
 /* returns the address method of the given string */
 enum addressmethod determineaddressmethod(char *s)
