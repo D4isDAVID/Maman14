@@ -38,6 +38,29 @@ struct hashmap *hashmap_new(void)
 	return m;
 }
 
+struct hashmap *hashmap_copy(struct hashmap *o)
+{
+	int i;
+	struct hashnode *n, *tmp;
+	struct hashmap *m = (struct hashmap *) malloc(sizeof(*m));
+	for (i = 0; i < HASHMAP_CAPACITY; i++) {
+		n = o->tab[i];
+		while (n != NULL) {
+			tmp = n->next;
+			switch (n->type) {
+			case HASHMAP_VAL_INT:
+				hashmap_setint(m, n->key, *((int *) (n->value)));
+				break;
+			case HASHMAP_VAL_STR:
+				hashmap_setstr(m, n->key, n->value);
+				break;
+			}
+			n = tmp;
+		}
+	}
+	return m;
+}
+
 struct hashnode *getnode(struct hashmap *m, char *key)
 {
 	struct hashnode *n;
@@ -47,7 +70,7 @@ struct hashnode *getnode(struct hashmap *m, char *key)
 	return NULL;
 }
 
-int hashmap_getsize(struct hashmap *m)
+int hashmap_sizeof(struct hashmap *m)
 {
 	return m->size;
 }

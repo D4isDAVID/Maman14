@@ -1,7 +1,7 @@
 #ifndef SYMBOLS_H
 #define SYMBOLS_H
 
-enum opcode {
+enum symbol {
 	OPCODE_MOV,
 	OPCODE_CMP,
 	OPCODE_ADD,
@@ -24,7 +24,16 @@ enum opcode {
 	DIRECTIVE_ENTRY,
 	DIRECTIVE_EXTERN,
 
-	UNKNOWN_OPERATION
+	REGISTER_ZERO,
+	REGISTER_ONE,
+	REGISTER_TWO,
+	REGISTER_THREE,
+	REGISTER_FOUR,
+	REGISTER_FIVE,
+	REGISTER_SIX,
+	REGISTER_SEVEN,
+
+	UNKNOWN_SYMBOL
 };
 
 enum encoding {
@@ -44,13 +53,14 @@ enum paramamount {
 	PARAM_LIST, /* .data */
 	PARAM_TWO,
 	PARAM_SINGLE,
-	PARAM_NONE
+	PARAM_NONE,
+	PARAM_UNKNOWN
 };
 
 void symbols_prepare(void);
 void symbols_free(void);
 
-enum opcode symbols_getopcode(char *);
-enum paramamount symbols_getparamamount(enum opcode);
+enum symbol symbols_getsymbol(char *);
+enum paramamount symbols_getparamamount(enum symbol);
 
 #endif
