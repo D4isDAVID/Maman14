@@ -31,7 +31,8 @@ void symbols_prepare(void)
 	hashmap_setint(operations, ".entry", DIRECTIVE_ENTRY);
 	hashmap_setint(operations, ".extern", DIRECTIVE_EXTERN);
 
-	symbols = hashmap_copy(operations);
+	symbols = hashmap_new();
+	hashmap_copy(symbols, operations);
 
 	hashmap_setint(symbols, "r0", REGISTER_ZERO);
 	hashmap_setint(symbols, "r1", REGISTER_ONE);
