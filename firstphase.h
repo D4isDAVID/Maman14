@@ -3,6 +3,6 @@
 
 #include <stdio.h>
 
-void firstphase(FILE *);
+FILE *firstphase(FILE *, char *, struct hashmap **);
 
 #endif

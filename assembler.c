@@ -6,11 +6,15 @@
 #include "parser.h"
 #include "firstphase.h"
 #include "strutil.h"
+#include "hashmap.h"
+
+void deleteoutputfiles(char *);
 
 int main(int argc, char **argv)
 {
 	int i;
-	FILE *as, *am;
+	FILE *as, *am, *ob;
+	struct hashmap *labels, *entext;
 	if (argc == 1) {
 		fprintf(stderr, "Error: no files mentioned\n");
 		return 1;
@@ -25,18 +29,22 @@ int main(int argc, char **argv)
 		replaceextension(argv[i], "");
 		am = preassembler(as, argv[i]);
 		fclose(as);
-		firstphase(am, argv[i]);
+		ob = firstphase(am, argv[i], &labels, &entext);
 		fclose(am);
-		if (isfileempty(am)) {
-			strcat(argv[i], ".am");
-			remove(argv[i]);
-			replaceextension(argv[i], ".ent");
-			remove(argv[i]);
-			replaceextension(argv[i], ".ext");
-			remove(argv[i]);
-			replaceextension(argv[i], ".ob");
-			remove(argv[i]);
-		}
+		if (ob == NULL)
+			deleteoutputfiles(argv[i]);
 	}
 	return 0;
+}
+
+void deleteoutputfiles(char *filename)
+{
+	strcat(filename, ".am");
+	remove(filename);
+	replaceextension(filename, ".ent");
+	remove(filename);
+	replaceextension(filename, ".ext");
+	remove(filename);
+	replaceextension(filename, ".ob");
+	remove(filename);
 }

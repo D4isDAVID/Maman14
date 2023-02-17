@@ -6,7 +6,7 @@
 #include "parser.h"
 
 /* phase entry point */
-void firstphase(FILE *am)
+FILE *firstphase(FILE *am, char *filename, struct hashmap **labels, struct hashmap **entext)
 {
 	char line[MAX_LINE_LENGTH + 2];
 	int i,

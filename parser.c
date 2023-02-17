@@ -24,16 +24,6 @@ int isvalidspace(char c)
 	return c == ' ' || c == '\t';
 }
 
-/* returns whether the given file is empty */
-int isfileempty(FILE *f)
-{
-	int i;
-	fseek(f, 0, SEEK_END);
-	i = ftell(f) == 0;
-	rewind(f);
-	return i;
-}
-
 /* skips over spaces and tabs in the given line at the given position, and returns their amount */
 int skipwhitespace(char line[], int *i)
 {

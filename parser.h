@@ -11,7 +11,6 @@ typedef struct word {
 } word;
 
 enum addressmethod determineaddressmethod(char *s);
-int isfileempty(FILE *);
 int skipwhitespace(char [], int *);
 int countnonwhitespace(char [], int *);
 
