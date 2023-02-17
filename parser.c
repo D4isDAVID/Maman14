@@ -31,7 +31,7 @@ int skipwhitespace(char line[], int *i)
 int countnonwhitespace(char line[], int *i)
 {
 	int count = 0;
-	for (; !isvalidspace(line[*i]) && line[*i] != '\n'; (*i)++, count++)
+	for (; !isvalidspace(line[*i]) && line[*i] != '\n' && line[*i] != '\0'; (*i)++, count++)
 		;
 	return count;
 }

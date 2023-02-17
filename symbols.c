@@ -4,34 +4,45 @@
 #include <stdlib.h>
 #include "hashmap.h"
 
-struct hashmap *opcodes;
+struct hashmap *symbols, *operations;
 enum paramamount *paramamounts;
 
 void symbols_prepare(void)
 {
-	opcodes = hashmap_new();
-	hashmap_setint(opcodes, "mov", OPCODE_MOV);
-	hashmap_setint(opcodes, "cmp", OPCODE_CMP);
-	hashmap_setint(opcodes, "add", OPCODE_ADD);
-	hashmap_setint(opcodes, "sub", OPCODE_SUB);
-	hashmap_setint(opcodes, "not", OPCODE_NOT);
-	hashmap_setint(opcodes, "clr", OPCODE_CLR);
-	hashmap_setint(opcodes, "lea", OPCODE_LEA);
-	hashmap_setint(opcodes, "inc", OPCODE_INC);
-	hashmap_setint(opcodes, "dec", OPCODE_DEC);
-	hashmap_setint(opcodes, "jmp", OPCODE_JMP);
-	hashmap_setint(opcodes, "bne", OPCODE_BNE);
-	hashmap_setint(opcodes, "red", OPCODE_RED);
-	hashmap_setint(opcodes, "prn", OPCODE_PRN);
-	hashmap_setint(opcodes, "jsr", OPCODE_JSR);
-	hashmap_setint(opcodes, "rts", OPCODE_RTS);
-	hashmap_setint(opcodes, "stop", OPCODE_STOP);
-	hashmap_setint(opcodes, ".data", DIRECTIVE_DATA);
-	hashmap_setint(opcodes, ".string", DIRECTIVE_STRING);
-	hashmap_setint(opcodes, ".entry", DIRECTIVE_ENTRY);
-	hashmap_setint(opcodes, ".extern", DIRECTIVE_EXTERN);
+	operations = hashmap_new();
+	hashmap_setint(operations, "mov", OPCODE_MOV);
+	hashmap_setint(operations, "cmp", OPCODE_CMP);
+	hashmap_setint(operations, "add", OPCODE_ADD);
+	hashmap_setint(operations, "sub", OPCODE_SUB);
+	hashmap_setint(operations, "not", OPCODE_NOT);
+	hashmap_setint(operations, "clr", OPCODE_CLR);
+	hashmap_setint(operations, "lea", OPCODE_LEA);
+	hashmap_setint(operations, "inc", OPCODE_INC);
+	hashmap_setint(operations, "dec", OPCODE_DEC);
+	hashmap_setint(operations, "jmp", OPCODE_JMP);
+	hashmap_setint(operations, "bne", OPCODE_BNE);
+	hashmap_setint(operations, "red", OPCODE_RED);
+	hashmap_setint(operations, "prn", OPCODE_PRN);
+	hashmap_setint(operations, "jsr", OPCODE_JSR);
+	hashmap_setint(operations, "rts", OPCODE_RTS);
+	hashmap_setint(operations, "stop", OPCODE_STOP);
+	hashmap_setint(operations, ".data", DIRECTIVE_DATA);
+	hashmap_setint(operations, ".string", DIRECTIVE_STRING);
+	hashmap_setint(operations, ".entry", DIRECTIVE_ENTRY);
+	hashmap_setint(operations, ".extern", DIRECTIVE_EXTERN);
 
-	paramamounts = (enum paramamount *) malloc(sizeof(*paramamounts) * hashmap_getsize(opcodes));
+	symbols = hashmap_copy(operations);
+
+	hashmap_setint(symbols, "r0", REGISTER_ZERO);
+	hashmap_setint(symbols, "r1", REGISTER_ONE);
+	hashmap_setint(symbols, "r2", REGISTER_TWO);
+	hashmap_setint(symbols, "r3", REGISTER_THREE);
+	hashmap_setint(symbols, "r4", REGISTER_FOUR);
+	hashmap_setint(symbols, "r5", REGISTER_FIVE);
+	hashmap_setint(symbols, "r6", REGISTER_SIX);
+	hashmap_setint(symbols, "r7", REGISTER_SEVEN);
+
+	paramamounts = (enum paramamount *) malloc(sizeof(*paramamounts) * hashmap_sizeof(operations));
 	paramamounts[OPCODE_MOV] = PARAM_TWO;
 	paramamounts[OPCODE_CMP] = PARAM_TWO;
 	paramamounts[OPCODE_ADD] = PARAM_TWO;
@@ -52,24 +63,26 @@ void symbols_prepare(void)
 	paramamounts[DIRECTIVE_STRING] = PARAM_SINGLE;
 	paramamounts[DIRECTIVE_ENTRY] = PARAM_SINGLE;
 	paramamounts[DIRECTIVE_EXTERN] = PARAM_SINGLE;
-	paramamounts[UNKNOWN_OPERATION] = PARAM_NONE;
 }
 
 void symbols_free(void)
 {
-	hashmap_free(opcodes);
+	hashmap_free(symbols);
+	hashmap_free(operations);
 	free(paramamounts);
 }
 
-/* returns the opcode of the given operation name, or `UNKNOWN_OPERATION` for non-existent ones */
-enum opcode symbols_getopcode(char *op)
+/* returns an enum value of the given symbol, or `UNKNOWN_SYMBOL` for non-existent ones */
+enum symbol symbols_get(char *op)
 {
-	int *code = hashmap_getint(opcodes, op);
-	return code == NULL ? UNKNOWN_OPERATION : *code;
+	int *code = hashmap_getint(symbols, op);
+	return code == NULL ? UNKNOWN_SYMBOL : *code;
 }
 
 /* returns the parameter amount of the given operation */
-enum paramamount symbols_getparamamount(enum opcode op)
+enum paramamount symbols_getparamamount(enum symbol op)
 {
+	if (op >= hashmap_sizeof(operations))
+		return PARAM_UNKNOWN;
 	return paramamounts[op];
 }
