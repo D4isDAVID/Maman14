@@ -19,6 +19,7 @@ int main(int argc, char **argv)
 		fprintf(stderr, "Error: no files mentioned\n");
 		return 1;
 	}
+	symbols_prepare();
 	for (i = 1; i < argc; i++) {
 		strcat(argv[i], ".as");
 		as = fopen(argv[i], "r");
@@ -34,6 +35,7 @@ int main(int argc, char **argv)
 		if (ob == NULL)
 			deleteoutputfiles(argv[i]);
 	}
+	symbols_free();
 	return 0;
 }
 
