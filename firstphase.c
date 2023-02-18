@@ -3,7 +3,6 @@
 
 #include <stdarg.h>
 #include <string.h>
-#include "hashmap.h"
 #include "parser.h"
 #include "strutil.h"
 
@@ -24,11 +23,9 @@ FILE *firstphase(FILE *am, char *filename, struct hashmap **labels, struct hashm
 		instructioncount = 0,
 		haserrors = 0;
 	enum symbol opcode;
-	FILE *ob, *instr, *data;
+	FILE *ob;
 	strcat(filename, ".ob");
 	ob = fopen(filename, "w");
-	instr = fopen("instr.temp", "w");
-	data = fopen("data.temp", "w");
 	*labels = hashmap_new();
 	*entext = hashmap_new();
 	while (fgets(line, MAX_LINE_LENGTH + 2, am)) {
