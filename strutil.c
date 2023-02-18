@@ -7,7 +7,7 @@ char *strndupl(char *s, size_t lim)
 {
 	char *n = (char *) malloc(sizeof(char) * (lim + 1));
 	strncpy(n, s, lim);
-	n[lim+1] = '\0';
+	n[lim] = '\0';
 	return n;
 }
 
