@@ -13,6 +13,7 @@ void deleteoutputfiles(char *);
 int main(int argc, char **argv)
 {
 	int i;
+	char *filename;
 	FILE *as, *am, *ob;
 	struct hashmap *labels, *entext;
 	if (argc == 1) {
@@ -21,19 +22,21 @@ int main(int argc, char **argv)
 	}
 	symbols_prepare();
 	for (i = 1; i < argc; i++) {
-		strcat(argv[i], ".as");
-		as = fopen(argv[i], "r");
+		filename = malloc(sizeof(char) * (strlen(argv[i]) + 5)); /* enough space for filename + extension + null terminator */
+		strcpy(filename, argv[i]);
+		strcat(filename, ".as");
+		as = fopen(filename, "r");
 		if (as == NULL) {
-			fprintf(stderr, "Error in opening %s\n", argv[i]);
+			fprintf(stderr, "Error in opening %s\n", filename);
 			return 1;
 		}
-		replaceextension(argv[i], "");
-		am = preassembler(as, argv[i]);
+		replaceextension(filename, "");
+		am = preassembler(as, filename);
 		fclose(as);
-		ob = firstphase(am, argv[i], &labels, &entext);
+		ob = firstphase(am, filename, &labels, &entext);
 		fclose(am);
 		if (ob == NULL)
-			deleteoutputfiles(argv[i]);
+			deleteoutputfiles(filename);
 	}
 	symbols_free();
 	return 0;
