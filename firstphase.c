@@ -28,6 +28,7 @@ FILE *firstphase(FILE *am, char *filename, struct hashmap **labels, struct hashm
 	ob = fopen(filename, "w");
 	*labels = hashmap_new();
 	*entext = hashmap_new();
+	replaceextension(filename, ""); /* we need the filename without .ob extension to print in error messages */
 	while (fgets(line, MAX_LINE_LENGTH + 2, am)) {
 		linecount++;
 		if (line[0] == ';')
@@ -73,9 +74,11 @@ FILE *firstphase(FILE *am, char *filename, struct hashmap **labels, struct hashm
 	}
 	fclose(ob);
 	ob = NULL;
-	if (!haserrors && (instructioncount > 0 && datacount > 0))
+	if (!haserrors && (instructioncount > 0 && datacount > 0)) {
+		strcat(filename, ".ob");
 		ob = fopen(filename, "r");
-	replaceextension(filename, "");
+		replaceextension(filename, "");
+	}
 	return ob;
 }
 
