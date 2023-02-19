@@ -4,7 +4,7 @@
 struct hashmap;
 
 struct hashmap *hashmap_new(void);
-struct hashmap *hashmap_copy(struct hashmap *);
+void hashmap_copy(struct hashmap *, struct hashmap *);
 int hashmap_sizeof(struct hashmap *);
 int *hashmap_getint(struct hashmap *, char *);
 char *hashmap_getstr(struct hashmap *, char *);

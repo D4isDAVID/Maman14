@@ -2,7 +2,8 @@
 #define FIRSTPHASE_H
 
 #include <stdio.h>
+#include "hashmap.h"
 
-void firstphase(FILE *);
+FILE *firstphase(FILE *, char *, struct hashmap **, struct hashmap **);
 
 #endif

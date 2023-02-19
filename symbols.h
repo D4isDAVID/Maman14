@@ -42,11 +42,18 @@ enum encoding {
 	ENC_RELOCATABLE
 };
 
-enum addressmethods {
+enum addressmethod {
 	ADDRESS_INSTANT,
 	ADDRESS_DIRECT,
 	ADDRESS_JUMP_WITH_PARAMS,
-	ADDRESS_DIRECT_REGISTER
+	ADDRESS_DIRECT_REGISTER,
+	ADDRESS_ERROR
+};
+
+enum jumpparamtype {
+	INSTANT_NUMBER,
+	LABEL,
+	REGISTER = 3
 };
 
 enum paramamount {
@@ -57,10 +64,20 @@ enum paramamount {
 	PARAM_UNKNOWN
 };
 
+enum labeltype {
+	LABEL_ENTRY,
+	LABEL_EXTERNAL
+};
+
 void symbols_prepare(void);
 void symbols_free(void);
 
-enum symbol symbols_getsymbol(char *);
+enum symbol symbols_get(char *);
 enum paramamount symbols_getparamamount(enum symbol);
+int isoperation(char *);
+int isdirective(char *);
+int isregister(char *);
+int isjumpoperation(enum symbol);
+int isdatadirective(enum symbol);
 
 #endif

@@ -6,6 +6,7 @@
 #include <string.h>
 #include "hashmap.h"
 #include "parser.h"
+#include "strutil.h"
 
 #define MCR "mcr"
 #define ENDMCR "endmcr"
@@ -27,24 +28,20 @@ FILE *preassembler(FILE *as, char *filename)
 	struct hashmap *macros = hashmap_new();
 	FILE *am;
 	strcat(filename, ".am");
-	am = fopen(filename, "w+");
+	am = fopen(filename, "w");
 	while (fgets(line, MAX_LINE_LENGTH + 2, as) != NULL) {
 		lineoffset = 0;
 		i = 0;
 		skipwhitespace(line, &i);
 		count = countnonwhitespace(line, &i);
-		if (count == 0 || line[i-count] == ';')
-			continue;
 		if (!macrodef)
 			if (isvalidmcr(line, &i, &count, &macroname)) {
 				macrocontent = getmacrocontentptr(as);
 				macrodef = 1;
 			} else {
 				while (count > 0) {
-					macroname = (char *) malloc(sizeof(char) * (count+1));
-					strncpy(macroname, &line[i-count], count);
-					macroname[count] = '\0';
-					if ((macrocontent = hashmap_getstr(macros, macroname)) != NULL) {
+					macroname = strndupl(&line[i-count], count);
+					if ((macrocontent = hashmap_getstr(macros, macroname)) != NULL && symbols_get(macroname) == UNKNOWN_SYMBOL) {
 						line[i-count] = '\0'; /* to print the current line up to the macro name */
 						fputs(&line[lineoffset], am);
 						fputs(macrocontent, am); /* print the macro content */
@@ -71,6 +68,7 @@ FILE *preassembler(FILE *as, char *filename)
 	hashmap_free(macros);
 	fclose(am);
 	am = fopen(filename, "r");
+	replaceextension(filename, "");
 	return am;
 }
 
@@ -105,9 +103,7 @@ int isvalidmcr(char *line, int *i, int *count, char **macroname)
 		return 0;
 	if ((*count = countnonwhitespace(line, i)) == 0)
 		return 0;
-	*macroname = (char *) malloc(sizeof(char) * ((*count)+1));
-	strncpy(*macroname, &line[(*i)-(*count)], *count);
-	(*macroname)[(*count)+1] = '\0';
+	*macroname = strndupl(&line[(*i)-(*count)], *count);
 	skipwhitespace(line, i);
 	return countnonwhitespace(line, i) == 0;
 }

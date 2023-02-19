@@ -38,32 +38,34 @@ struct hashmap *hashmap_new(void)
 	return m;
 }
 
-struct hashmap *hashmap_copy(struct hashmap *o)
+void hashmap_copy(struct hashmap *dest, struct hashmap *src)
 {
 	int i;
 	struct hashnode *n, *tmp;
-	struct hashmap *m = (struct hashmap *) malloc(sizeof(*m));
+	if (dest == NULL || src == NULL)
+		return;
 	for (i = 0; i < HASHMAP_CAPACITY; i++) {
-		n = o->tab[i];
+		n = src->tab[i];
 		while (n != NULL) {
 			tmp = n->next;
 			switch (n->type) {
 			case HASHMAP_VAL_INT:
-				hashmap_setint(m, n->key, *((int *) (n->value)));
+				hashmap_setint(dest, n->key, *((int *) (n->value)));
 				break;
 			case HASHMAP_VAL_STR:
-				hashmap_setstr(m, n->key, n->value);
+				hashmap_setstr(dest, n->key, n->value);
 				break;
 			}
 			n = tmp;
 		}
 	}
-	return m;
 }
 
 struct hashnode *getnode(struct hashmap *m, char *key)
 {
 	struct hashnode *n;
+	if (m == NULL)
+		return NULL;
 	for (n = m->tab[hash(key)]; n != NULL; n = n->next)
 		if (strcmp(n->key, key) == 0)
 			return n;
@@ -72,25 +74,27 @@ struct hashnode *getnode(struct hashmap *m, char *key)
 
 int hashmap_sizeof(struct hashmap *m)
 {
-	return m->size;
+	return m == NULL ? 0 : m->size;
 }
 
 int *hashmap_getint(struct hashmap *m, char *key)
 {
 	struct hashnode *n;
-	return (n = getnode(m, key)) == NULL || n->type != HASHMAP_VAL_INT ? NULL : (int *) n->value;
+	return m == NULL || (n = getnode(m, key)) == NULL || n->type != HASHMAP_VAL_INT ? NULL : (int *) n->value;
 }
 
 char *hashmap_getstr(struct hashmap *m, char *key)
 {
 	struct hashnode *n;
-	return (n = getnode(m, key)) == NULL || n->type != HASHMAP_VAL_STR ? NULL : (char *) n->value;
+	return m == NULL || (n = getnode(m, key)) == NULL || n->type != HASHMAP_VAL_STR ? NULL : (char *) n->value;
 }
 
 struct hashnode *preparenode(struct hashmap *m, char *key)
 {
 	struct hashnode *n;
 	unsigned int hashval;
+	if (m == NULL)
+		return NULL;
 	if ((n = getnode(m, key)) == NULL) {
 		n = (struct hashnode *) malloc(sizeof(*n));
 		if (n == NULL)
@@ -111,7 +115,7 @@ struct hashnode *preparenode(struct hashmap *m, char *key)
 void *hashmap_setint(struct hashmap *m, char *key, int value)
 {
 	struct hashnode *n = preparenode(m, key);
-	if (n == NULL)
+	if (m == NULL || n == NULL)
 		return NULL;
 	n->value = malloc(sizeof(value));
 	*((int *) n->value) = value;
@@ -122,7 +126,7 @@ void *hashmap_setint(struct hashmap *m, char *key, int value)
 void *hashmap_setstr(struct hashmap *m, char *key, char *value)
 {
 	struct hashnode *n = preparenode(m, key);
-	if (n == NULL)
+	if (m == NULL || n == NULL)
 		return NULL;
 	n->value = malloc(sizeof(char) * strlen(value));
 	strcpy(n->value, value);
@@ -134,6 +138,8 @@ void hashmap_free(struct hashmap *m)
 {
 	struct hashnode *n, *tmp;
 	int i;
+	if (m == NULL)
+		return;
 	for (i = 0; i < HASHMAP_CAPACITY; i++) {
 		n = m->tab[i];
 		while (n != NULL) {
