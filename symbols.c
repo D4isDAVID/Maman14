@@ -58,15 +58,15 @@ void symbols_prepare(void)
 	paramamounts[OPCODE_CLR] = PARAM_SINGLE;
 	paramamounts[OPCODE_INC] = PARAM_SINGLE;
 	paramamounts[OPCODE_DEC] = PARAM_SINGLE;
-	paramamounts[OPCODE_JMP] = PARAM_SINGLE;
-	paramamounts[OPCODE_BNE] = PARAM_SINGLE;
+	paramamounts[OPCODE_JMP] = PARAM_UNKNOWN;
+	paramamounts[OPCODE_BNE] = PARAM_UNKNOWN;
 	paramamounts[OPCODE_RED] = PARAM_SINGLE;
 	paramamounts[OPCODE_PRN] = PARAM_SINGLE;
-	paramamounts[OPCODE_JSR] = PARAM_SINGLE;
+	paramamounts[OPCODE_JSR] = PARAM_UNKNOWN;
 	paramamounts[OPCODE_RTS] = PARAM_NONE;
 	paramamounts[OPCODE_STOP] = PARAM_NONE;
 	paramamounts[DIRECTIVE_DATA] = PARAM_LIST;
-	paramamounts[DIRECTIVE_STRING] = PARAM_SINGLE;
+	paramamounts[DIRECTIVE_STRING] = PARAM_UNKNOWN;
 	paramamounts[DIRECTIVE_ENTRY] = PARAM_SINGLE;
 	paramamounts[DIRECTIVE_EXTERN] = PARAM_SINGLE;
 }

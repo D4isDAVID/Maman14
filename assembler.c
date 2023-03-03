@@ -7,6 +7,7 @@
 #include "firstphase.h"
 #include "strutil.h"
 #include "hashmap.h"
+#include "linkedlist.h"
 
 void deleteoutputfiles(char *);
 
@@ -15,7 +16,8 @@ int main(int argc, char **argv)
 	int i;
 	char *filename;
 	FILE *as, *am, *ob;
-	struct hashmap *labels, *entext;
+	struct hashmap *labels, *labelattributes;
+	struct listnode *instructions = linkedlist_newnode(0), *data = linkedlist_newnode(0); /* garbage 0 values to start the list */
 	if (argc == 1) {
 		fprintf(stderr, "Error: no files mentioned\n");
 		return 1;
@@ -33,10 +35,16 @@ int main(int argc, char **argv)
 		replaceextension(filename, "");
 		am = preassembler(as, filename);
 		fclose(as);
-		ob = firstphase(am, filename, &labels, &entext);
+		ob = firstphase(am, filename, &instructions, &data, &labels, &labelattributes);
 		fclose(am);
+		instructions = instructions->next; /* skip garbage value */
+		data = data->next;
 		if (ob == NULL)
 			deleteoutputfiles(filename);
+		linkedlist_free(instructions);
+		linkedlist_free(data);
+		hashmap_free(labels);
+		hashmap_free(labelattributes);
 	}
 	symbols_free();
 	return 0;

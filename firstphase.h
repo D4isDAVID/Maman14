@@ -3,7 +3,8 @@
 
 #include <stdio.h>
 #include "hashmap.h"
+#include "linkedlist.h"
 
-FILE *firstphase(FILE *, char *, struct hashmap **, struct hashmap **);
+FILE *firstphase(FILE *, char *, struct listnode **, struct listnode **, struct hashmap **, struct hashmap **);
 
 #endif
