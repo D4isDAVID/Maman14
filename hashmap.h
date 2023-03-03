@@ -27,7 +27,6 @@ int hashmap_sizeof(struct hashmap *);
 int *hashmap_getint(struct hashmap *, char *);
 char *hashmap_getstr(struct hashmap *, char *);
 void *hashmap_setint(struct hashmap *, char *, int);
-void *hashmap_addtobitfield(struct hashmap *m, char *key, int value);
 void *hashmap_setstr(struct hashmap *, char *, char *);
 
 #endif

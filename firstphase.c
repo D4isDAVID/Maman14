@@ -18,7 +18,6 @@ FILE *firstphase(FILE *am, char *filename, struct listnode **instructions, struc
 	int i, /* current character in current line */
 		count, /* results from `skipwhitespace` and `countnonwhitespace` */
 		labeldef, /* whether the current line has a label */
-		paramamount,
 		linecount = 0, /* count of lines */
 		datacount = 0, /* count of data instructions */
 		instructioncount = 0, /* count of all instructions */
@@ -28,7 +27,7 @@ FILE *firstphase(FILE *am, char *filename, struct listnode **instructions, struc
 		*params,
 		*instructionsptr,
 		*dataptr;
-	struct hashnode *m;
+	struct hashnode *labelattributesptr;
 	FILE *ob;
 	strcat(filename, ".ob");
 	ob = fopen(filename, "w");
@@ -66,7 +65,6 @@ FILE *firstphase(FILE *am, char *filename, struct listnode **instructions, struc
 		opname = strndupl(&line[i-count], count);
 		opcode = symbols_get(opname);
 		skipwhitespace(line, &i);
-		paramamount = 0;
 		switch (parseparams(line, &i, symbols_getparamamount(opcode), &params)) {
 		case PARSER_EEXPECTEDCOMMA:
 			haserrors = 1;
@@ -93,25 +91,17 @@ FILE *firstphase(FILE *am, char *filename, struct listnode **instructions, struc
 				}
 				if (opcode == DIRECTIVE_DATA) {
 					while (params != NULL) {
-						if (isvalidnum((char *) params->value)) {
-							dataptr = linkedlist_newnode(params->value);
-							if (data == NULL)
-								data = dataptr;
-						}
 						tmp = params->next;
-						linkedlist_freenode(params);
-						while (params != NULL) {
-							if (isvalidnum((char *) params->value)) {
-								/* TODO:
-								encodenum(params->value);
-								 */
-							} else {
-								haserrors = 1;
-								printerr(filename, linecount, i-count, "invalid number %s", params->value);
-								break;
-							}
-							params = params->next;
+						if (isvalidnum((char *) params->value)) {
+							/* TODO:
+							encodenum(params->value, &data, &datacount);
+							 */
+						} else {
+							haserrors = 1;
+							printerr(filename, linecount, i-count, "invalid number %s", params->value);
+							break;
 						}
+						linkedlist_freenode(params);
 						params = tmp;
 					}
 				} else {
@@ -144,8 +134,8 @@ FILE *firstphase(FILE *am, char *filename, struct listnode **instructions, struc
 				}
 			}
 		} else if (isoperation(opname)) {
-			instructioncount++;
 			/* TODO */
+			instructioncount++;
 			if (labeldef)
 				hashmap_setint(*labels, labelname, instructioncount);
 		} else {
@@ -154,11 +144,11 @@ FILE *firstphase(FILE *am, char *filename, struct listnode **instructions, struc
 		}
 	}
 	for (i = 0; i < HASHMAP_CAPACITY; i++) {
-		m = (*labelattributes)->tab[i];
-		while (m != NULL) {
-			if (*((int *) m->value) & LABEL_DATA)
-				hashmap_setint(labels, m->key, hashmap_getint(labels, m->key) + instructioncount);
-			m = m->next;
+		labelattributesptr = (*labelattributes)->tab[i];
+		while (labelattributesptr != NULL) {
+			if (*((int *) labelattributesptr->value) & LABEL_DATA)
+				hashmap_setint(labels, labelattributesptr->key, hashmap_getint(labels, labelattributesptr->key) + instructioncount);
+			labelattributesptr = labelattributesptr->next;
 		}
 	}
 	fprintf(ob, "%d %d\n", instructioncount, datacount);
