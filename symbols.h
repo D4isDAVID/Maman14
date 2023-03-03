@@ -57,16 +57,17 @@ enum jumpparamtype {
 };
 
 enum paramamount {
+	PARAM_UNKNOWN = -2,
 	PARAM_LIST, /* .data */
-	PARAM_TWO,
-	PARAM_SINGLE,
 	PARAM_NONE,
-	PARAM_UNKNOWN
+	PARAM_SINGLE,
+	PARAM_TWO
 };
 
-enum labeltype {
-	LABEL_ENTRY,
-	LABEL_EXTERNAL
+enum labelattribute {
+	LABEL_ENTRY = 1 << 0,
+	LABEL_EXTERNAL = 1 << 1,
+	LABEL_DATA = 1 << 2
 };
 
 void symbols_prepare(void);

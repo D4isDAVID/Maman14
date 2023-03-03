@@ -4,8 +4,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define HASHMAP_CAPACITY 255
-
 unsigned int hash(char *key)
 {
 	unsigned int hashval;
@@ -14,28 +12,30 @@ unsigned int hash(char *key)
 	return hashval % HASHMAP_CAPACITY;
 }
 
-enum hashmap_valuetype {
-	HASHMAP_VAL_INT,
-	HASHMAP_VAL_STR
-};
-
-struct hashnode {
-	struct hashnode *next;
-	char *key;
-	void *value;
-	enum hashmap_valuetype type;
-};
-
-struct hashmap {
-	struct hashnode *tab[HASHMAP_CAPACITY];
-	int size;
-};
-
 struct hashmap *hashmap_new(void)
 {
 	struct hashmap *m = (struct hashmap *) malloc(sizeof(*m));
 	m->size = 0;
 	return m;
+}
+
+void hashmap_free(struct hashmap *m)
+{
+	struct hashnode *n, *tmp;
+	int i;
+	if (m == NULL)
+		return;
+	for (i = 0; i < HASHMAP_CAPACITY; i++) {
+		n = m->tab[i];
+		while (n != NULL) {
+			tmp = n->next;
+			free(n->key);
+			free(n->value);
+			free(n);
+			n = tmp;
+		}
+	}
+	free(m);
 }
 
 void hashmap_copy(struct hashmap *dest, struct hashmap *src)
@@ -132,23 +132,4 @@ void *hashmap_setstr(struct hashmap *m, char *key, char *value)
 	strcpy(n->value, value);
 	n->type = HASHMAP_VAL_STR;
 	return n->value;
-}
-
-void hashmap_free(struct hashmap *m)
-{
-	struct hashnode *n, *tmp;
-	int i;
-	if (m == NULL)
-		return;
-	for (i = 0; i < HASHMAP_CAPACITY; i++) {
-		n = m->tab[i];
-		while (n != NULL) {
-			tmp = n->next;
-			free(n->key);
-			free(n->value);
-			free(n);
-			n = tmp;
-		}
-	}
-	free(m);
 }
