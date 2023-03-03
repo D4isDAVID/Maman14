@@ -1,8 +1,6 @@
 #ifndef LINKEDLIST_H
 #define LINKEDLIST_H
 
-#include "parser.h"
-
 struct listnode {
 	struct listnode *next;
 	void *value;

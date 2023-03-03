@@ -16,8 +16,8 @@ int main(int argc, char **argv)
 	int i;
 	char *filename;
 	FILE *as, *am, *ob;
-	struct listnode *instructions, *data;
 	struct hashmap *labels, *labelattributes;
+	struct listnode *instructions = linkedlist_newnode(0), *data = linkedlist_newnode(0); /* garbage 0 values to start the list */
 	if (argc == 1) {
 		fprintf(stderr, "Error: no files mentioned\n");
 		return 1;
@@ -37,9 +37,10 @@ int main(int argc, char **argv)
 		fclose(as);
 		ob = firstphase(am, filename, &instructions, &data, &labels, &labelattributes);
 		fclose(am);
-		if (ob == NULL) {
+		instructions = instructions->next; /* skip garbage value */
+		data = data->next;
+		if (ob == NULL)
 			deleteoutputfiles(filename);
-		}
 		linkedlist_free(instructions);
 		linkedlist_free(data);
 		hashmap_free(labels);

@@ -25,8 +25,8 @@ FILE *firstphase(FILE *am, char *filename, struct listnode **instructions, struc
 	enum symbol opcode; /* operation code in current line */
 	struct listnode *tmp,
 		*params,
-		*instructionsptr,
-		*dataptr;
+		*instructionsptr = *instructions,
+		*dataptr = *data;
 	struct hashnode *labelattributesptr;
 	FILE *ob;
 	strcat(filename, ".ob");
@@ -78,6 +78,7 @@ FILE *firstphase(FILE *am, char *filename, struct listnode **instructions, struc
 			haserrors = 1;
 			printerr(filename, linecount, i-count, "expected comma after space");
 			break;
+		default: break;
 		}
 		if ((!isdirective(opname) || isdatadirective(opcode)) && (hashmap_getint(*labels, labelname) != NULL || hashmap_getint(*labelattributes, labelname) != NULL)) {
 			haserrors = 1;
@@ -105,7 +106,7 @@ FILE *firstphase(FILE *am, char *filename, struct listnode **instructions, struc
 						params = tmp;
 					}
 				} else {
-					switch (encodestring(line, &data, &datacount)) {
+					switch (encodestring(line, &dataptr, &datacount)) {
 					case PARSER_EEXPECTEDQUOTES:
 						haserrors = 1;
 						printerr(filename, linecount, i-count, "string declarations must start with quotes (\")");
@@ -118,6 +119,7 @@ FILE *firstphase(FILE *am, char *filename, struct listnode **instructions, struc
 						haserrors = 1;
 						printerr(filename, linecount, i-count, "strings must contain printable ascii characters");
 						break;
+					default: break;
 					}
 				}
 			} else if (opcode == DIRECTIVE_EXTERN) {
@@ -147,7 +149,7 @@ FILE *firstphase(FILE *am, char *filename, struct listnode **instructions, struc
 		labelattributesptr = (*labelattributes)->tab[i];
 		while (labelattributesptr != NULL) {
 			if (*((int *) labelattributesptr->value) & LABEL_DATA)
-				hashmap_setint(labels, labelattributesptr->key, hashmap_getint(labels, labelattributesptr->key) + instructioncount);
+				hashmap_setint(*labels, labelattributesptr->key, *hashmap_getint(*labels, labelattributesptr->key) + instructioncount);
 			labelattributesptr = labelattributesptr->next;
 		}
 	}
