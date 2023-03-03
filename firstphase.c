@@ -18,6 +18,7 @@ FILE *firstphase(FILE *am, char *filename, struct listnode **instructions, struc
 	int i, /* current character in current line */
 		count, /* results from `skipwhitespace` and `countnonwhitespace` */
 		labeldef, /* whether the current line has a label */
+		paramamount, /* parameter amount of current operation */
 		linecount = 0, /* count of lines */
 		datacount = 0, /* count of data instructions */
 		instructioncount = 0, /* count of all instructions */
@@ -65,20 +66,22 @@ FILE *firstphase(FILE *am, char *filename, struct listnode **instructions, struc
 		opname = strndupl(&line[i-count], count);
 		opcode = symbols_get(opname);
 		skipwhitespace(line, &i);
-		switch (parseparams(line, &i, symbols_getparamamount(opcode), &params)) {
+		paramamount = symbols_getparamamount(opcode);
+		switch (parseparams(line, &i, paramamount, &params)) {
 		case PARSER_EEXPECTEDCOMMA:
 			haserrors = 1;
 			printerr(filename, linecount, i-count, "expected comma after space");
 			break;
 		case PARSER_ENOTENOUGHPARAMS:
 			haserrors = 1;
-			printerr(filename, linecount, i-count, "expected %d params");
+			printerr(filename, linecount, i-count, "not enough parameters (expected %d)", paramamount);
 			break;
 		case PARSER_ETOOMANYPARAMS:
 			haserrors = 1;
-			printerr(filename, linecount, i-count, "expected comma after space");
+			printerr(filename, linecount, i-count, "too many parameters (expected %d)", paramamount);
 			break;
-		default: break;
+		default:
+			break;
 		}
 		if ((!isdirective(opname) || isdatadirective(opcode)) && (hashmap_getint(*labels, labelname) != NULL || hashmap_getint(*labelattributes, labelname) != NULL)) {
 			haserrors = 1;
@@ -119,10 +122,11 @@ FILE *firstphase(FILE *am, char *filename, struct listnode **instructions, struc
 						haserrors = 1;
 						printerr(filename, linecount, i-count, "strings must contain printable ascii characters");
 						break;
-					default: break;
+					default:
+						break;
 					}
 				}
-			} else if (opcode == DIRECTIVE_EXTERN) {
+			} else if (opcode == DIRECTIVE_EXTERN) { /* TODO: handle .entry */
 				if (labeldef)
 					printwarn(filename, linecount, i-count, "useless label definition");
 				skipwhitespace(line, &i);
