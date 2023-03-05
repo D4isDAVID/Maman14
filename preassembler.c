@@ -34,6 +34,8 @@ FILE *preassembler(FILE *as, char *filename)
 		i = 0;
 		skipwhitespace(line, &i);
 		count = countnonwhitespace(line, &i);
+		if (line[i-count] == ';' || count == 0)
+			continue;
 		if (!macrodef)
 			if (isvalidmcr(line, &i, &count, &macroname)) {
 				macrocontent = getmacrocontentptr(as);

@@ -41,8 +41,6 @@ FILE *firstphase(FILE *am, char *filename, struct listnode **instructions, struc
 		labeldef = 0;
 		skipwhitespace(line, &i);
 		count = countnonwhitespace(line, &i);
-		if (line[i-count] == ';')
-			continue;
 		if (line[i-1] == ':') {
 			labelname = strndupl(&line[i-count], count-1);
 			if (!isvalidlabel(labelname)) {
