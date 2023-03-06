@@ -111,14 +111,14 @@ FILE *firstphase(FILE *am, char *filename, struct listnode **instructions, struc
 						params = tmp;
 					}
 				} else {
-					switch (encodestring(line, &dataptr, &datacount)) {
+					switch (encodestring(&line[i], &dataptr, &datacount)) {
 					case PARSER_EEXPECTEDQUOTES:
 						haserrors = 1;
 						printerr(filename, linecount, i-count, "string declarations must start with quotes (\")");
 						break;
 					case PARSER_EUNFINISHEDSTRING:
 						haserrors = 1;
-						printerr(filename, linecount, i-count, "string declarations must end with quotes (\")");
+						printerr(filename, linecount, i-count, "unfinished string (strings must end with quotes \")");
 						break;
 					case PARSER_INVALIDCHAR:
 						haserrors = 1;

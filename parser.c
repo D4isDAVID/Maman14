@@ -13,9 +13,9 @@ enum parsererrno encodestring(char *s, struct listnode **data, int *datacount)
 	int i = 0;
 	if (*s != '"')
 		return PARSER_EEXPECTEDQUOTES;
-	end = strrchr(s, '"');
+	end = strrchr(s, '"') + 1;
 	skipwhitespace(end, &i);
-	if (s == end || countnonwhitespace(end, &i) > 0)
+	if (s == end-1 || countnonwhitespace(end, &i) > 0)
 		return PARSER_EUNFINISHEDSTRING;
 	for (s++; s != end; s++) {
 		if (!isprint(*s))
@@ -47,12 +47,10 @@ enum parsererrno parseparams(char *line, int *i, int paramamount, struct listnod
 		ii = 0;
 		if (countnonwhitespace(param, &ii) == 0)
 			return PARSER_EUNEXPECTEDCOMMA;
-		printf("%d\n", ii);
 		if ((count = skipwhitespace(param, &ii)) > 0) {
 			if (countnonwhitespace(param, &ii) > 0)
 				return PARSER_EUNEXPECTEDSPACE;
 			param[ii-count] = '\0';
-			printf("%d\n", ii-count);
 		}
 		tmp = linkedlist_newnode(param);
 		if (*n != NULL)
