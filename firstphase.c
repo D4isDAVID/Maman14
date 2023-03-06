@@ -30,18 +30,22 @@ FILE *firstphase(FILE *am, char *filename, struct listnode **instructions, struc
 		*dataptr = *data;
 	struct hashnode *labelattributesptr;
 	FILE *ob;
+
 	strcat(filename, ".ob");
 	ob = fopen(filename, "w");
 	*labels = hashmap_new();
 	*labelattributes = hashmap_new();
 	replaceextension(filename, ""); /* we need the filename without .ob extension to print in error messages */
+
 	while (fgets(line, MAX_LINE_LENGTH + 2, am) != NULL) {
 		linecount++;
 		i = 0;
 		labeldef = 0;
 		params = NULL;
+
 		skipwhitespace(line, &i);
 		count = countnonwhitespace(line, &i);
+
 		if (line[i-1] == ':') {
 			labelname = strndupl(&line[i-count], count-1);
 			if (!isvalidlabel(labelname)) {
@@ -59,11 +63,14 @@ FILE *firstphase(FILE *am, char *filename, struct listnode **instructions, struc
 				printerr(filename, linecount, i-count, "label defined without instruction");
 			}
 		}
+
 		if (count == 0)
 			continue;
+
 		opname = strndupl(&line[i-count], count);
 		opcode = symbols_get(opname);
 		skipwhitespace(line, &i);
+
 		paramamount = symbols_getparamamount(opcode);
 		switch (parseparams(line, &i, paramamount, &params)) {
 		case PARSER_EUNEXPECTEDSPACE:
@@ -85,11 +92,13 @@ FILE *firstphase(FILE *am, char *filename, struct listnode **instructions, struc
 		default:
 			break;
 		}
+
 		labelattribute = hashmap_getint(*labelattributes, labelname);
 		if (labeldef && (isoperation(opname) || isdatadirective(opcode)) && !(hashmap_getint(*labels, labelname) == NULL && (labelattribute == NULL || *labelattribute & LABEL_ENTRY))) {
 			haserrors = 1;
 			printerr(filename, linecount, i-count, "label is already defined (%s)", labelname);
 		}
+
 		if (isdirective(opname)) {
 			if (isdatadirective(opcode)) {
 				if (labeldef) {
@@ -148,6 +157,7 @@ FILE *firstphase(FILE *am, char *filename, struct listnode **instructions, struc
 			haserrors = 1;
 			printerr(filename, linecount, i-count, "unknown instruction %s", opname);
 		}
+		linkedlist_free(params);
 	}
 	for (i = 0; i < HASHMAP_CAPACITY; i++) {
 		labelattributesptr = (*labelattributes)->tab[i];

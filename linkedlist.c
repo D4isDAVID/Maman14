@@ -7,6 +7,7 @@ struct listnode *linkedlist_newnode(void *value)
 {
 	struct listnode *n = (struct listnode *) malloc(sizeof(*n));
 	n->value = value;
+	n->next = NULL;
 	return n;
 }
 
