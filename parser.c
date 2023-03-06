@@ -40,7 +40,6 @@ enum parsererrno parseparams(char *line, int *i, int paramamount, struct listnod
 	struct listnode *tmp;
 	if (paramamount == PARAM_UNKNOWN)
 		return PARSER_OK;
-	/* TODO: rework loop */
 	while ((count = countnonwhitespace(line, i)) > 0 && paramamount != 0) {
 		param = dupluntil(&line[(*i)-count], ',');
 		*i -= count;
