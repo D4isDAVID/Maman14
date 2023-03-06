@@ -101,8 +101,7 @@ FILE *firstphase(FILE *am, char *filename, struct listnode **instructions, struc
 							 */
 						} else {
 							haserrors = 1;
-							printerr(filename, linecount, i-count, "invalid number %s", params->value);
-							break;
+							printerr(filename, linecount, i-count, "invalid number %s", (char *) params->value);
 						}
 						linkedlist_freenode(params);
 						params = tmp;

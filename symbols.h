@@ -57,8 +57,8 @@ enum jumpparamtype {
 };
 
 enum paramamount {
-	PARAM_UNKNOWN = -2,
-	PARAM_LIST, /* .data */
+	PARAM_LIST = -2, /* .data */
+	PARAM_UNKNOWN,
 	PARAM_NONE,
 	PARAM_SINGLE,
 	PARAM_TWO
