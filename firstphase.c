@@ -65,8 +65,6 @@ FILE *firstphase(FILE *am, char *filename, struct listnode **instructions, struc
 		opcode = symbols_get(opname);
 		skipwhitespace(line, &i);
 		paramamount = symbols_getparamamount(opcode);
-		if (labeldef)
-			printf("")
 		switch (parseparams(line, &i, paramamount, &params)) {
 		case PARSER_EUNEXPECTEDSPACE:
 			haserrors = 1;
@@ -100,7 +98,6 @@ FILE *firstphase(FILE *am, char *filename, struct listnode **instructions, struc
 				}
 				if (opcode == DIRECTIVE_DATA) {
 					while (params != NULL) {
-						printf("%s\n", (char *) params->value);
 						if (isvalidnum((char *) params->value)) {
 							/* TODO:
 							encodenum(params->value, &data, &datacount);
