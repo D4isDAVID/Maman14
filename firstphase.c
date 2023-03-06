@@ -19,6 +19,7 @@ FILE *firstphase(FILE *am, char *filename, struct listnode **instructions, struc
 		count, /* results from `skipwhitespace` and `countnonwhitespace` */
 		labeldef, /* whether the current line has a label */
 		paramamount, /* parameter amount of current operation */
+		*labelattribute, /* hashmap values of labelattributes */
 		linecount = 0, /* count of lines */
 		datacount = 0, /* count of data instructions */
 		instructioncount = 0, /* count of all instructions */
@@ -81,7 +82,8 @@ FILE *firstphase(FILE *am, char *filename, struct listnode **instructions, struc
 		default:
 			break;
 		}
-		if ((!isdirective(opname) || isdatadirective(opcode)) && (hashmap_getint(*labels, labelname) != NULL || hashmap_getint(*labelattributes, labelname) != NULL)) {
+		labelattribute = hashmap_getint(*labelattributes, labelname);
+		if (labeldef && (isoperation(opname) || isdatadirective(opcode)) && !(hashmap_getint(*labels, labelname) == NULL && (labelattribute == NULL || *labelattribute & LABEL_ENTRY))) {
 			haserrors = 1;
 			printerr(filename, linecount, i-count, "label is already defined (%s)", labelname);
 		}
@@ -124,14 +126,14 @@ FILE *firstphase(FILE *am, char *filename, struct listnode **instructions, struc
 						break;
 					}
 				}
-			} else if (opcode == DIRECTIVE_EXTERN) { /* TODO: handle .entry */
+			} else {
 				if (labeldef)
 					printwarn(filename, linecount, i-count, "useless label definition");
 				skipwhitespace(line, &i);
 				count = countnonwhitespace(line, &i);
 				labelname = strndupl(&line[i-count], count);
-				if (hashmap_getint(*labels, labelname) == NULL && hashmap_getint(*labelattributes, labelname) == NULL)
-					hashmap_setint(*labelattributes, labelname, LABEL_EXTERNAL);
+				if ((labelattribute == NULL || !(*labelattribute & (LABEL_ENTRY | LABEL_EXTERNAL))) && (opcode != DIRECTIVE_EXTERN || hashmap_getint(*labels, labelname) == NULL))
+					hashmap_setint(*labelattributes, labelname, (opcode == DIRECTIVE_EXTERN ? LABEL_EXTERNAL : LABEL_ENTRY));
 				else {
 					haserrors = 1;
 					printerr(filename, linecount, i-count, "label is already defined (%s)", labelname);
