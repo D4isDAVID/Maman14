@@ -66,9 +66,13 @@ FILE *firstphase(FILE *am, char *filename, struct listnode **instructions, struc
 		skipwhitespace(line, &i);
 		paramamount = symbols_getparamamount(opcode);
 		switch (parseparams(line, &i, paramamount, &params)) {
-		case PARSER_EEXPECTEDCOMMA:
+		case PARSER_EUNEXPECTEDSPACE:
 			haserrors = 1;
-			printerr(filename, linecount, i-count, "expected comma after space");
+			printerr(filename, linecount, i-count, "unexpected space in params list");
+			break;
+		case PARSER_EUNEXPECTEDCOMMA:
+			haserrors = 1;
+			printerr(filename, linecount, i-count, "unexpected comma in params list");
 			break;
 		case PARSER_ENOTENOUGHPARAMS:
 			haserrors = 1;

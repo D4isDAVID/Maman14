@@ -35,21 +35,32 @@ enum parsererrno encodestring(char *s, struct listnode **data, int *datacount)
 
 enum parsererrno parseparams(char *line, int *i, int paramamount, struct listnode **n)
 {
-	int count;
+	int count, ii;
 	char *param;
 	struct listnode *tmp;
 	if (paramamount == PARAM_UNKNOWN)
 		return PARSER_OK;
 	/* TODO: rework loop */
-	while (paramamount != 0 && (count = countnonwhitespace(line, i)) > 0) {
-		param = strndupl(&line[(*i)-count], count);
+	while ((count = countnonwhitespace(line, i)) > 0 && paramamount != 0) {
+		param = dupluntil(&line[(*i)-count], ',');
+		*i -= count;
+		ii = 0;
+		if (countnonwhitespace(param, &ii) == 0)
+			return PARSER_EUNEXPECTEDCOMMA;
+		printf("%d\n", ii);
+		if ((count = skipwhitespace(param, &ii)) > 0) {
+			if (countnonwhitespace(param, &ii) > 0)
+				return PARSER_EUNEXPECTEDSPACE;
+			param[ii-count] = '\0';
+			printf("%d\n", ii-count);
+		}
 		tmp = linkedlist_newnode(param);
 		if (*n != NULL)
 			(*n)->next = tmp;
 		*n = tmp;
-		skipwhitespace(line, i);
-		if (line[*i] != ',')
-			return PARSER_EEXPECTEDCOMMA;
+		*i += ii;
+		if (line[*i] == ',')
+			(*i)++;
 		skipwhitespace(line, i);
 		paramamount--;
 	}
@@ -96,11 +107,17 @@ int isvalidspace(char c)
 	return c == ' ' || c == '\t';
 }
 
+/* returns whether the given character terminates the line in any way */
+int islineterminator(char c)
+{
+	return c == '\n' || c == '\0' || c == EOF;
+}
+
 /* skips over spaces and tabs in the given line at the given position, and returns their amount */
 int skipwhitespace(char line[], int *i)
 {
 	int count = 0;
-	for (; isvalidspace(line[*i]) && line[*i] != EOF; (*i)++, count++)
+	for (; isvalidspace(line[*i]) && !islineterminator(line[*i]); (*i)++, count++)
 		;
 	return count;
 }
@@ -110,7 +127,15 @@ int skipwhitespace(char line[], int *i)
 int countnonwhitespace(char line[], int *i)
 {
 	int count = 0;
-	for (; !isvalidspace(line[*i]) && line[*i] != '\n' && line[*i] != '\0' && line[*i] != EOF; (*i)++, count++)
+	for (; !isvalidspace(line[*i]) && !islineterminator(line[*i]); (*i)++, count++)
 		;
 	return count;
+}
+
+char *dupluntil(char *s, char c)
+{
+	int count;
+	for (count = 0; s[count] != c && !islineterminator(s[count]); count++)
+		;
+	return strndupl(s, count);
 }
