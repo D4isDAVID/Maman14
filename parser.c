@@ -40,6 +40,7 @@ enum parsererrno parseparams(char *line, int *i, int paramamount, struct listnod
 	struct listnode *tmp;
 	if (paramamount == PARAM_UNKNOWN)
 		return PARSER_OK;
+	/* TODO: rework loop */
 	while (paramamount != 0 && (count = countnonwhitespace(line, i)) > 0) {
 		param = strndupl(&line[(*i)-count], count);
 		tmp = linkedlist_newnode(param);
@@ -73,7 +74,7 @@ int isvalidnum(char *s)
 {
 	if (*s != '-' && *s != '+' && !isdigit(*s))
 		return 0;
-	for (s++; *s != '\0'; s++)
+	for (s++; *s != '\0' && *s != EOF; s++)
 		if (!isdigit(*s))
 			return 0;
 	return 1;
@@ -83,7 +84,7 @@ int isvalidlabel(char *s)
 {
 	if (!isalpha(*s))
 		return 0;
-	for (s++; *s != '\0'; s++)
+	for (s++; *s != '\0' && *s != EOF; s++)
 		if (!isalnum(*s))
 			return 0;
 	return 1;
@@ -99,7 +100,7 @@ int isvalidspace(char c)
 int skipwhitespace(char line[], int *i)
 {
 	int count = 0;
-	for (; isvalidspace(line[*i]); (*i)++, count++)
+	for (; isvalidspace(line[*i]) && line[*i] != EOF; (*i)++, count++)
 		;
 	return count;
 }
@@ -109,7 +110,7 @@ int skipwhitespace(char line[], int *i)
 int countnonwhitespace(char line[], int *i)
 {
 	int count = 0;
-	for (; !isvalidspace(line[*i]) && line[*i] != '\n' && line[*i] != '\0'; (*i)++, count++)
+	for (; !isvalidspace(line[*i]) && line[*i] != '\n' && line[*i] != '\0' && line[*i] != EOF; (*i)++, count++)
 		;
 	return count;
 }

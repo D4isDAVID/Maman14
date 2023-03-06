@@ -26,7 +26,7 @@ FILE *firstphase(FILE *am, char *filename, struct listnode **instructions, struc
 		haserrors = 0; /* whether an error has been detected somewhere in the file */
 	enum symbol opcode; /* operation code in current line */
 	struct listnode *tmp,
-		*params,
+		*params = NULL,
 		*instructionsptr = *instructions,
 		*dataptr = *data;
 	struct hashnode *labelattributesptr;
@@ -36,7 +36,7 @@ FILE *firstphase(FILE *am, char *filename, struct listnode **instructions, struc
 	*labels = hashmap_new();
 	*labelattributes = hashmap_new();
 	replaceextension(filename, ""); /* we need the filename without .ob extension to print in error messages */
-	while (fgets(line, MAX_LINE_LENGTH + 2, am)) {
+	while (fgets(line, MAX_LINE_LENGTH + 2, am) != NULL) {
 		linecount++;
 		i = 0;
 		labeldef = 0;
@@ -47,8 +47,7 @@ FILE *firstphase(FILE *am, char *filename, struct listnode **instructions, struc
 			if (!isvalidlabel(labelname)) {
 				haserrors = 1;
 				printerr(filename, linecount, i-count, "label names must start with a letter followed by letters or numbers (%s)", labelname);
-			}
-			if (symbols_get(labelname) != UNKNOWN_SYMBOL) {
+			} else if (symbols_get(labelname) != UNKNOWN_SYMBOL) {
 				haserrors = 1;
 				printerr(filename, linecount, i-count, "label name must not be a pre-defined symbol (%s)", labelname);
 			} else
