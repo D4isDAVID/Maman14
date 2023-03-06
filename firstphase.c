@@ -25,8 +25,7 @@ FILE *firstphase(FILE *am, char *filename, struct listnode **instructions, struc
 		instructioncount = 0, /* count of all instructions */
 		haserrors = 0; /* whether an error has been detected somewhere in the file */
 	enum symbol opcode; /* operation code in current line */
-	struct listnode *tmp,
-		*params = NULL,
+	struct listnode *params,
 		*instructionsptr = *instructions,
 		*dataptr = *data;
 	struct hashnode *labelattributesptr;
@@ -40,6 +39,7 @@ FILE *firstphase(FILE *am, char *filename, struct listnode **instructions, struc
 		linecount++;
 		i = 0;
 		labeldef = 0;
+		params = NULL;
 		skipwhitespace(line, &i);
 		count = countnonwhitespace(line, &i);
 		if (line[i-1] == ':') {
@@ -65,6 +65,8 @@ FILE *firstphase(FILE *am, char *filename, struct listnode **instructions, struc
 		opcode = symbols_get(opname);
 		skipwhitespace(line, &i);
 		paramamount = symbols_getparamamount(opcode);
+		if (labeldef)
+			printf("")
 		switch (parseparams(line, &i, paramamount, &params)) {
 		case PARSER_EUNEXPECTEDSPACE:
 			haserrors = 1;
@@ -98,7 +100,7 @@ FILE *firstphase(FILE *am, char *filename, struct listnode **instructions, struc
 				}
 				if (opcode == DIRECTIVE_DATA) {
 					while (params != NULL) {
-						tmp = params->next;
+						printf("%s\n", (char *) params->value);
 						if (isvalidnum((char *) params->value)) {
 							/* TODO:
 							encodenum(params->value, &data, &datacount);
@@ -107,8 +109,7 @@ FILE *firstphase(FILE *am, char *filename, struct listnode **instructions, struc
 							haserrors = 1;
 							printerr(filename, linecount, i-count, "invalid number %s", (char *) params->value);
 						}
-						linkedlist_freenode(params);
-						params = tmp;
+						params = linkedlist_freenext(params);
 					}
 				} else {
 					switch (encodestring(&line[i], &dataptr, &datacount)) {

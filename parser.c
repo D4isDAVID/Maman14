@@ -33,11 +33,11 @@ enum parsererrno encodestring(char *s, struct listnode **data, int *datacount)
 	return PARSER_OK;
 }
 
-enum parsererrno parseparams(char *line, int *i, int paramamount, struct listnode **n)
+enum parsererrno parseparams(char *line, int *i, int paramamount, struct listnode **head)
 {
 	int count, ii;
 	char *param;
-	struct listnode *tmp;
+	struct listnode *n = NULL, *tmp;
 	if (paramamount == PARAM_UNKNOWN)
 		return PARSER_OK;
 	while ((count = countnonwhitespace(line, i)) > 0 && paramamount != 0) {
@@ -52,9 +52,11 @@ enum parsererrno parseparams(char *line, int *i, int paramamount, struct listnod
 			param[ii-count] = '\0';
 		}
 		tmp = linkedlist_newnode(param);
-		if (*n != NULL)
-			(*n)->next = tmp;
-		*n = tmp;
+		if (n != NULL)
+			(n)->next = tmp;
+		n = tmp;
+		if (*head == NULL)
+			*head = n;
 		*i += ii;
 		if (line[*i] == ',')
 			(*i)++;
