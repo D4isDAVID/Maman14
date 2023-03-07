@@ -1,7 +1,7 @@
 CCX := gcc -Wall -ansi -pedantic
 
-assembler: assembler.c preassembler.o firstphase.o parser.o hashmap.o linkedlist.o symbols.o strutil.o
-	$(CCX) assembler.c preassembler.o firstphase.o parser.o hashmap.o linkedlist.o symbols.o strutil.o -o assembler
+assembler: assembler.c preassembler.o firstphase.o parser.o hashmap.o linkedlist.o symbols.o strutil.o errutil.o
+	$(CCX) assembler.c preassembler.o firstphase.o parser.o hashmap.o linkedlist.o symbols.o strutil.o errutil.o -o assembler
 preassembler.o: preassembler.c preassembler.h
 	$(CCX) -c preassembler.c -o preassembler.o
 firstphase.o: firstphase.c firstphase.h
@@ -16,6 +16,8 @@ symbols.o: symbols.c symbols.h
 	$(CCX) -c symbols.c -o symbols.o
 strutil.o: strutil.c strutil.h
 	$(CCX) -c strutil.c -o strutil.o
+errutil.o: errutil.c errutil.h
+	$(CCX) -c errutil.c -o errutil.o
 
 .PHONY: clean
 clean:

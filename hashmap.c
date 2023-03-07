@@ -133,3 +133,19 @@ void *hashmap_setstr(struct hashmap *m, char *key, char *value)
 	n->type = HASHMAP_VAL_STR;
 	return n->value;
 }
+
+void hashmap_addbittofield(struct hashmap *m, char *key, int value)
+{
+	int *n;
+	if (m == NULL)
+		return;
+	n = hashmap_getint(m, key);
+	if (n == NULL)
+		hashmap_setint(m, key, value);
+	else
+		hashmap_setint(
+			m,
+			key,
+			(*n) | value
+		);
+}

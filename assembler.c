@@ -8,6 +8,7 @@
 #include "strutil.h"
 #include "hashmap.h"
 #include "linkedlist.h"
+#include "errutil.h"
 
 void deleteoutputfiles(char *);
 
@@ -23,6 +24,7 @@ int main(int argc, char **argv)
 		return 1;
 	}
 	symbols_prepare();
+	errutil_prepare();
 	for (i = 1; i < argc; i++) {
 		filename = malloc(sizeof(char) * (strlen(argv[i]) + 5)); /* enough space for filename + extension + null terminator */
 		strcpy(filename, argv[i]);
@@ -47,6 +49,7 @@ int main(int argc, char **argv)
 		hashmap_free(labelattributes);
 	}
 	symbols_free();
+	errutil_free();
 	return 0;
 }
 
