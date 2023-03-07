@@ -22,7 +22,7 @@ enum parsererrno encodestring(char *s, struct listnode **data, int *datacount)
 			return PARSER_INVALIDCHAR;
 		w = (word *) malloc(sizeof(*w));
 		w->field = *s;
-		tmp = linkedlist_newnode(&w);
+		tmp = linkedlist_newnode(w);
 		if (n != NULL)
 			(n)->next = tmp;
 		else

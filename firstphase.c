@@ -7,7 +7,7 @@
 #include "errutil.h"
 
 /* phase entry point */
-FILE *firstphase(FILE *am, char *filename, struct listnode **instructions, struct listnode **data, struct hashmap **labels, struct hashmap **labelattributes)
+FILE *firstphase(FILE *am, char *filename, struct listnode *instructions, struct listnode *data, struct hashmap *labels, struct hashmap *labelattributes)
 {
 	char line[MAX_LINE_LENGTH + 2], /* current line */
 		*labelname, /* label name in label definition */
@@ -23,15 +23,13 @@ FILE *firstphase(FILE *am, char *filename, struct listnode **instructions, struc
 		haserrors = 0; /* whether an error has been detected somewhere in the file */
 	enum symbol opcode; /* operation code in current line */
 	struct listnode *params,
-		*instructionsptr = *instructions,
-		*dataptr = *data;
-	struct hashnode *labelattributesptr;
+		*instructionsptr = instructions,
+		*dataptr = data;
+	struct hashnode *attributesptr;
 	FILE *ob;
 
 	strcat(filename, ".ob");
 	ob = fopen(filename, "w");
-	*labels = hashmap_new();
-	*labelattributes = hashmap_new();
 	replaceextension(filename, ""); /* we need the filename without .ob extension to print in error messages */
 
 	while (fgets(line, MAX_LINE_LENGTH + 2, am) != NULL) {
@@ -90,8 +88,8 @@ FILE *firstphase(FILE *am, char *filename, struct listnode **instructions, struc
 		}
 
 		if (labeldef) {
-			labelattribute = hashmap_getint(*labelattributes, labelname);
-			if ((isoperation(opname) || isdatadirective(opcode)) && (hashmap_getint(*labels, labelname) != NULL || (labelattribute != NULL && *labelattribute & LABEL_EXTERNAL))) {
+			labelattribute = hashmap_getint(labelattributes, labelname);
+			if ((isoperation(opname) || isdatadirective(opcode)) && (hashmap_getint(labels, labelname) != NULL || (labelattribute != NULL && *labelattribute & LABEL_EXTERNAL))) {
 				haserrors = 1;
 				printerr(filename, linecount, i-count, ERROR_LABELDEFINED, labelname);
 			}
@@ -100,8 +98,8 @@ FILE *firstphase(FILE *am, char *filename, struct listnode **instructions, struc
 		if (isdirective(opname)) {
 			if (isdatadirective(opcode)) {
 				if (labeldef) {
-					hashmap_setint(*labels, labelname, datacount);
-					hashmap_addbittofield(*labelattributes, labelname, LABEL_DATA);
+					hashmap_setint(labels, labelname, datacount);
+					hashmap_addbittofield(labelattributes, labelname, LABEL_DATA);
 				}
 				if (opcode == DIRECTIVE_DATA) {
 					while (params != NULL) {
@@ -137,12 +135,12 @@ FILE *firstphase(FILE *am, char *filename, struct listnode **instructions, struc
 				if (labeldef)
 					printwarn(filename, linecount, i-count, WARNING_LABELUSELESS, labelname);
 				labelname = strdupl((char *) params->value);
-				labelattribute = hashmap_getint(*labelattributes, labelname);
+				labelattribute = hashmap_getint(labelattributes, labelname);
 				if (!isvalidlabel(labelname)) {
 					haserrors = 1;
 					printerr(filename, linecount, i-count, ERROR_LABELINVALIDNAME, labelname);
-				} else if ((opcode == DIRECTIVE_ENTRY || hashmap_getint(*labels, labelname) == NULL) && (labelattribute == NULL || !(*labelattribute & (LABEL_ENTRY | LABEL_EXTERNAL))))
-					hashmap_addbittofield(*labelattributes, labelname, (opcode == DIRECTIVE_EXTERN ? LABEL_EXTERNAL : LABEL_ENTRY));
+				} else if ((opcode == DIRECTIVE_ENTRY || hashmap_getint(labels, labelname) == NULL) && (labelattribute == NULL || !(*labelattribute & (LABEL_ENTRY | LABEL_EXTERNAL))))
+					hashmap_addbittofield(labelattributes, labelname, (opcode == DIRECTIVE_EXTERN ? LABEL_EXTERNAL : LABEL_ENTRY));
 				else {
 					haserrors = 1;
 					printerr(filename, linecount, i-count, ERROR_LABELDEFINED, labelname);
@@ -150,8 +148,8 @@ FILE *firstphase(FILE *am, char *filename, struct listnode **instructions, struc
 			}
 		} else if (isoperation(opname)) {
 			if (labeldef) {
-				hashmap_setint(*labels, labelname, instructioncount);
-				hashmap_addbittofield(*labelattributes, labelname, LABEL_INSTRUCTION);
+				hashmap_setint(labels, labelname, instructioncount);
+				hashmap_addbittofield(labelattributes, labelname, LABEL_INSTRUCTION);
 			}
 			/* TODO */
 			instructioncount++;
@@ -165,15 +163,17 @@ FILE *firstphase(FILE *am, char *filename, struct listnode **instructions, struc
 		free(opname);
 		linkedlist_free(params);
 	}
-	printf("finish\n");
+
 	for (i = 0; i < HASHMAP_CAPACITY; i++) {
-		labelattributesptr = (*labelattributes)->tab[i];
-		while (labelattributesptr != NULL) {
-			if (*((int *) labelattributesptr->value) & LABEL_DATA)
-				hashmap_setint(*labels, labelattributesptr->key, *hashmap_getint(*labels, labelattributesptr->key) + instructioncount);
-			labelattributesptr = labelattributesptr->next;
+		attributesptr = (labelattributes)->tab[i];
+		while (attributesptr != NULL) {
+			labelattribute = (int *) attributesptr->value;
+			if (labelattribute != NULL && *labelattribute & LABEL_DATA)
+				hashmap_setint(labels, attributesptr->key, *hashmap_getint(labels, attributesptr->key) + instructioncount);
+			attributesptr = attributesptr->next;
 		}
 	}
+
 	fprintf(ob, "%d %d\n", instructioncount, datacount);
 	fclose(ob);
 	ob = NULL;
