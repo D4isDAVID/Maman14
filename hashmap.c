@@ -1,6 +1,7 @@
 /* hashmap implementation, adapted from the K&R book */
 #include "hashmap.h"
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -97,11 +98,15 @@ struct hashnode *preparenode(struct hashmap *m, char *key)
 		return NULL;
 	if ((n = getnode(m, key)) == NULL) {
 		n = (struct hashnode *) malloc(sizeof(*n));
-		if (n == NULL)
-			return NULL;
+		if (n == NULL) {
+			fprintf(stderr, "error: failed to allocate memory for hashnode");
+			exit(1);
+		}
 		n->key = (char *) malloc(sizeof(char) * strlen(key));
-		if (n->key == NULL)
-			return NULL;
+		if (n->key == NULL) {
+			fprintf(stderr, "error: failed to allocate memory for hashnode value");
+			exit(1);
+		}
 		strcpy(n->key, key);
 		hashval = hash(key);
 		n->next = m->tab[hashval];
@@ -132,4 +137,13 @@ void *hashmap_setstr(struct hashmap *m, char *key, char *value)
 	strcpy(n->value, value);
 	n->type = HASHMAP_VAL_STR;
 	return n->value;
+}
+
+void hashmap_addbittofield(struct hashmap *m, char *key, int value)
+{
+	int *n;
+	if (m == NULL)
+		return;
+	n = hashmap_getint(m, key);
+	hashmap_setint(m, key, n == NULL ? value : ((*n) | value));
 }

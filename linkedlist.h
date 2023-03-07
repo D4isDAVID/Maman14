@@ -7,7 +7,7 @@ struct listnode {
 };
 
 struct listnode *linkedlist_newnode(void *);
-void linkedlist_freenode(struct listnode *);
+struct listnode *linkedlist_freenext(struct listnode *);
 void linkedlist_free(struct listnode *);
 
 #endif

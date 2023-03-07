@@ -7,23 +7,23 @@ struct listnode *linkedlist_newnode(void *value)
 {
 	struct listnode *n = (struct listnode *) malloc(sizeof(*n));
 	n->value = value;
+	n->next = NULL;
 	return n;
 }
 
-void linkedlist_freenode(struct listnode *n)
+struct listnode *linkedlist_freenext(struct listnode *n)
 {
+	struct listnode *tmp;
 	if (n == NULL)
-		return;
+		return NULL;
+	tmp = n->next;
 	free(n->value);
 	free(n);
+	return tmp;
 }
 
 void linkedlist_free(struct listnode *n)
 {
-	struct listnode *tmp;
-	while (n != NULL) {
-		tmp = n->next;
-		linkedlist_freenode(n);
-		n = tmp;
-	}
+	while (n != NULL)
+		n = linkedlist_freenext(n);
 }

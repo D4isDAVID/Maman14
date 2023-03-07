@@ -9,7 +9,8 @@
 
 enum parsererrno {
 	PARSER_OK,
-	PARSER_EEXPECTEDCOMMA,
+	PARSER_EUNEXPECTEDSPACE,
+	PARSER_EUNEXPECTEDCOMMA,
 	PARSER_ENOTENOUGHPARAMS,
 	PARSER_ETOOMANYPARAMS,
 	PARSER_EEXPECTEDQUOTES,
@@ -28,5 +29,6 @@ int isvalidnum(char *);
 int isvalidlabel(char *);
 int skipwhitespace(char [], int *);
 int countnonwhitespace(char [], int *);
+char *dupluntil(char *, char);
 
 #endif

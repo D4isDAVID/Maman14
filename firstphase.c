@@ -1,16 +1,13 @@
 /* first assembler phase */
 #include "firstphase.h"
 
-#include <stdarg.h>
 #include <string.h>
 #include "parser.h"
 #include "strutil.h"
-
-void printwarn(char *, int, int, char *, ...);
-void printerr(char *, int, int, char *, ...);
+#include "errutil.h"
 
 /* phase entry point */
-FILE *firstphase(FILE *am, char *filename, struct listnode **instructions, struct listnode **data, struct hashmap **labels, struct hashmap **labelattributes)
+FILE *firstphase(FILE *am, char *filename, struct listnode *instructions, struct listnode *data, struct hashmap *labels, struct hashmap *labelattributes)
 {
 	char line[MAX_LINE_LENGTH + 2], /* current line */
 		*labelname, /* label name in label definition */
@@ -19,144 +16,164 @@ FILE *firstphase(FILE *am, char *filename, struct listnode **instructions, struc
 		count, /* results from `skipwhitespace` and `countnonwhitespace` */
 		labeldef, /* whether the current line has a label */
 		paramamount, /* parameter amount of current operation */
+		*labelattribute, /* hashmap values of labelattributes */
 		linecount = 0, /* count of lines */
 		datacount = 0, /* count of data instructions */
 		instructioncount = 0, /* count of all instructions */
 		haserrors = 0; /* whether an error has been detected somewhere in the file */
 	enum symbol opcode; /* operation code in current line */
-	struct listnode *tmp,
-		*params,
-		*instructionsptr = *instructions,
-		*dataptr = *data;
-	struct hashnode *labelattributesptr;
+	struct listnode *params,
+		*instructionsptr = instructions,
+		*dataptr = data;
+	struct hashnode *attributesptr;
 	FILE *ob;
+
 	strcat(filename, ".ob");
 	ob = fopen(filename, "w");
-	*labels = hashmap_new();
-	*labelattributes = hashmap_new();
 	replaceextension(filename, ""); /* we need the filename without .ob extension to print in error messages */
-	while (fgets(line, MAX_LINE_LENGTH + 2, am)) {
+
+	while (fgets(line, MAX_LINE_LENGTH + 2, am) != NULL) {
 		linecount++;
 		i = 0;
 		labeldef = 0;
+		labelname = NULL;
+		params = NULL;
+
 		skipwhitespace(line, &i);
 		count = countnonwhitespace(line, &i);
-		if (line[i-count] == ';')
-			continue;
+
 		if (line[i-1] == ':') {
 			labelname = strndupl(&line[i-count], count-1);
 			if (!isvalidlabel(labelname)) {
 				haserrors = 1;
-				printerr(filename, linecount, i-count, "label names must start with a letter followed by letters or numbers (%s)", labelname);
-			}
-			if (symbols_get(labelname) != UNKNOWN_SYMBOL) {
+				printerr(filename, linecount, i-count, ERROR_LABELINVALIDNAME, labelname);
+			} else if (symbols_get(labelname) != UNKNOWN_SYMBOL) {
 				haserrors = 1;
-				printerr(filename, linecount, i-count, "label name must not be a pre-defined symbol (%s)", labelname);
+				printerr(filename, linecount, i-count, ERROR_LABELSYMBOL, labelname);
 			} else
 				labeldef = 1;
 			skipwhitespace(line, &i);
 			count = countnonwhitespace(line, &i);
-			if (count == 0) {
-				haserrors = 1;
-				printerr(filename, linecount, i-count, "label defined without instruction");
-			}
+			if (count == 0)
+				printwarn(filename, linecount, i-count, WARNING_LABELEMPTY, labelname);
 		}
+
 		if (count == 0)
 			continue;
+
 		opname = strndupl(&line[i-count], count);
 		opcode = symbols_get(opname);
 		skipwhitespace(line, &i);
+
 		paramamount = symbols_getparamamount(opcode);
 		switch (parseparams(line, &i, paramamount, &params)) {
-		case PARSER_EEXPECTEDCOMMA:
+		case PARSER_EUNEXPECTEDSPACE:
 			haserrors = 1;
-			printerr(filename, linecount, i-count, "expected comma after space");
+			printerr(filename, linecount, i-count, ERROR_PARAMSUNEXPECTEDSPACE);
+			break;
+		case PARSER_EUNEXPECTEDCOMMA:
+			haserrors = 1;
+			printerr(filename, linecount, i-count, ERROR_PARAMSUNEXPECTEDCOMMA);
 			break;
 		case PARSER_ENOTENOUGHPARAMS:
 			haserrors = 1;
-			printerr(filename, linecount, i-count, "not enough parameters (expected %d)", paramamount);
+			printerr(filename, linecount, i-count, ERROR_PARAMSNOTENOUGH, paramamount);
 			break;
 		case PARSER_ETOOMANYPARAMS:
 			haserrors = 1;
-			printerr(filename, linecount, i-count, "too many parameters (expected %d)", paramamount);
+			printerr(filename, linecount, i-count, ERROR_PARAMSTOOMANY, paramamount);
 			break;
 		default:
 			break;
 		}
-		if ((!isdirective(opname) || isdatadirective(opcode)) && (hashmap_getint(*labels, labelname) != NULL || hashmap_getint(*labelattributes, labelname) != NULL)) {
-			haserrors = 1;
-			printerr(filename, linecount, i-count, "label is already defined (%s)", labelname);
+
+		if (labeldef) {
+			labelattribute = hashmap_getint(labelattributes, labelname);
+			if ((isoperation(opname) || isdatadirective(opcode)) && (hashmap_getint(labels, labelname) != NULL || (labelattribute != NULL && *labelattribute & LABEL_EXTERNAL))) {
+				haserrors = 1;
+				printerr(filename, linecount, i-count, ERROR_LABELDEFINED, labelname);
+			}
 		}
+
 		if (isdirective(opname)) {
 			if (isdatadirective(opcode)) {
 				if (labeldef) {
-					hashmap_setint(*labels, labelname, datacount);
-					hashmap_setint(*labelattributes, labelname, LABEL_DATA);
+					hashmap_setint(labels, labelname, datacount);
+					hashmap_addbittofield(labelattributes, labelname, LABEL_DATA);
 				}
 				if (opcode == DIRECTIVE_DATA) {
 					while (params != NULL) {
-						tmp = params->next;
 						if (isvalidnum((char *) params->value)) {
 							/* TODO:
 							encodenum(params->value, &data, &datacount);
 							 */
 						} else {
 							haserrors = 1;
-							printerr(filename, linecount, i-count, "invalid number %s", params->value);
-							break;
+							printerr(filename, linecount, i-count, ERROR_DATAINVALIDNUMBER, (char *) params->value);
 						}
-						linkedlist_freenode(params);
-						params = tmp;
+						params = linkedlist_freenext(params);
 					}
 				} else {
-					switch (encodestring(line, &dataptr, &datacount)) {
+					switch (encodestring(&line[i], &dataptr, &datacount)) {
 					case PARSER_EEXPECTEDQUOTES:
 						haserrors = 1;
-						printerr(filename, linecount, i-count, "string declarations must start with quotes (\")");
+						printerr(filename, linecount, i-count, ERROR_STRINGSTARTQUOTES);
 						break;
 					case PARSER_EUNFINISHEDSTRING:
 						haserrors = 1;
-						printerr(filename, linecount, i-count, "string declarations must end with quotes (\")");
+						printerr(filename, linecount, i-count, ERROR_STRINGUNFINISHED);
 						break;
 					case PARSER_INVALIDCHAR:
 						haserrors = 1;
-						printerr(filename, linecount, i-count, "strings must contain printable ascii characters");
+						printerr(filename, linecount, i-count, ERROR_STRINGASCII);
 						break;
 					default:
 						break;
 					}
 				}
-			} else if (opcode == DIRECTIVE_EXTERN) { /* TODO: handle .entry */
+			} else {
 				if (labeldef)
-					printwarn(filename, linecount, i-count, "useless label definition");
-				skipwhitespace(line, &i);
-				count = countnonwhitespace(line, &i);
-				labelname = strndupl(&line[i-count], count);
-				if (hashmap_getint(*labels, labelname) == NULL && hashmap_getint(*labelattributes, labelname) == NULL)
-					hashmap_setint(*labelattributes, labelname, LABEL_EXTERNAL);
+					printwarn(filename, linecount, i-count, WARNING_LABELUSELESS, labelname);
+				labelname = strdupl((char *) params->value);
+				labelattribute = hashmap_getint(labelattributes, labelname);
+				if (!isvalidlabel(labelname)) {
+					haserrors = 1;
+					printerr(filename, linecount, i-count, ERROR_LABELINVALIDNAME, labelname);
+				} else if ((opcode == DIRECTIVE_ENTRY || hashmap_getint(labels, labelname) == NULL) && (labelattribute == NULL || !(*labelattribute & (LABEL_ENTRY | LABEL_EXTERNAL))))
+					hashmap_addbittofield(labelattributes, labelname, (opcode == DIRECTIVE_EXTERN ? LABEL_EXTERNAL : LABEL_ENTRY));
 				else {
 					haserrors = 1;
-					printerr(filename, linecount, i-count, "label is already defined (%s)", labelname);
+					printerr(filename, linecount, i-count, ERROR_LABELDEFINED, labelname);
 				}
 			}
 		} else if (isoperation(opname)) {
+			if (labeldef) {
+				hashmap_setint(labels, labelname, instructioncount);
+				hashmap_addbittofield(labelattributes, labelname, LABEL_INSTRUCTION);
+			}
 			/* TODO */
 			instructioncount++;
-			if (labeldef)
-				hashmap_setint(*labels, labelname, instructioncount);
 		} else {
 			haserrors = 1;
-			printerr(filename, linecount, i-count, "unknown instruction %s", opname);
+			printerr(filename, linecount, i-count, ERROR_UNKNOWNINSTRUCTION, opname);
 		}
+
+		if (labeldef)
+			free(labelname);
+		free(opname);
+		linkedlist_free(params);
 	}
+
 	for (i = 0; i < HASHMAP_CAPACITY; i++) {
-		labelattributesptr = (*labelattributes)->tab[i];
-		while (labelattributesptr != NULL) {
-			if (*((int *) labelattributesptr->value) & LABEL_DATA)
-				hashmap_setint(*labels, labelattributesptr->key, *hashmap_getint(*labels, labelattributesptr->key) + instructioncount);
-			labelattributesptr = labelattributesptr->next;
+		attributesptr = (labelattributes)->tab[i];
+		while (attributesptr != NULL) {
+			labelattribute = (int *) attributesptr->value;
+			if (labelattribute != NULL && *labelattribute & LABEL_DATA)
+				hashmap_setint(labels, attributesptr->key, *hashmap_getint(labels, attributesptr->key) + instructioncount);
+			attributesptr = attributesptr->next;
 		}
 	}
+
 	fprintf(ob, "%d %d\n", instructioncount, datacount);
 	fclose(ob);
 	ob = NULL;
@@ -166,27 +183,4 @@ FILE *firstphase(FILE *am, char *filename, struct listnode **instructions, struc
 		replaceextension(filename, "");
 	}
 	return ob;
-}
-
-void prettyprint(char *prefix, char *filename, int line, int c, char *s, va_list args)
-{
-	fprintf(stderr, "%s: %s.am:%d:%d - ", prefix, filename, line, c);
-	vfprintf(stderr, s, args);
-	fprintf(stderr, "\n");
-}
-
-void printwarn(char *filename, int line, int c, char *s, ...)
-{
-	va_list args;
-	va_start(args, s);
-	prettyprint("warning", filename, line, c, s, args);
-	va_end(args);
-}
-
-void printerr(char *filename, int line, int c, char *s, ...)
-{
-	va_list args;
-	va_start(args, s);
-	prettyprint("error", filename, line, c, s, args);
-	va_end(args);
 }

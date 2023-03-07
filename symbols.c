@@ -6,6 +6,7 @@
 
 struct hashmap *symbols, *operations, *directives, *registers;
 enum paramamount *paramamounts;
+int paramamountsize;
 
 void symbols_prepare(void)
 {
@@ -48,7 +49,8 @@ void symbols_prepare(void)
 	hashmap_copy(symbols, directives);
 	hashmap_copy(symbols, registers);
 
-	paramamounts = (enum paramamount *) malloc(sizeof(*paramamounts) * (hashmap_sizeof(operations) + hashmap_sizeof(directives)));
+	paramamountsize = hashmap_sizeof(operations) + hashmap_sizeof(directives);
+	paramamounts = (enum paramamount *) malloc(sizeof(*paramamounts) * paramamountsize);
 	paramamounts[OPCODE_MOV] = PARAM_TWO;
 	paramamounts[OPCODE_CMP] = PARAM_TWO;
 	paramamounts[OPCODE_ADD] = PARAM_TWO;
@@ -88,7 +90,7 @@ enum symbol symbols_get(char *op)
 /* returns the parameter amount of the given operation */
 enum paramamount symbols_getparamamount(enum symbol op)
 {
-	if (op >= hashmap_sizeof(operations))
+	if (op >= paramamountsize)
 		return PARAM_UNKNOWN;
 	return paramamounts[op];
 }
