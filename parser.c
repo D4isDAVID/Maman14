@@ -92,12 +92,13 @@ int isvalidnum(char *s)
 
 int isvalidlabel(char *s)
 {
+	int count;
 	if (!isalpha(*s))
 		return 0;
-	for (s++; *s != '\0' && *s != EOF; s++)
+	for (count = 0, s++; *s != '\0' && *s != EOF && count <= 30; s++, count++)
 		if (!isalnum(*s))
 			return 0;
-	return 1;
+	return count <= 30;
 }
 
 /* returns whether the given character is either a space or a tab */
