@@ -31,7 +31,7 @@ FILE *preassembler(FILE *as, char *filename)
 
 	FILE *am;
 	strcat(filename, ".am");
-	am = fopen(filename, "w");
+	am = open(filename, "w");
 
 	while (fgets(line, MAX_LINE_LENGTH + 2, as) != NULL) {
 		lineoffset = 0;
@@ -78,7 +78,7 @@ FILE *preassembler(FILE *as, char *filename)
 	}
 	hashmap_free(macros);
 	fclose(am);
-	am = fopen(filename, "r");
+	am = open(filename, "r");
 	replaceextension(filename, "");
 	return am;
 }

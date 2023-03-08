@@ -1,3 +1,5 @@
+#include <stdio.h>
+
 enum errutil_errno {
 	ERROR_LABELINVALIDNAME,
 	ERROR_LABELSYMBOL,
@@ -22,6 +24,7 @@ enum errutil_errno {
 };
 
 void *alloc(size_t);
+FILE *open(char *filename, char *mode);
 
 void errutil_prepare(void);
 void errutil_free(void);

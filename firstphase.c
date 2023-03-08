@@ -29,7 +29,7 @@ FILE *firstphase(FILE *am, char *filename, struct listnode *instructions, struct
 	FILE *ob;
 
 	strcat(filename, ".ob");
-	ob = fopen(filename, "w");
+	ob = open(filename, "w");
 	replaceextension(filename, ""); /* we need the filename without .ob extension to print in error messages */
 
 	while (fgets(line, MAX_LINE_LENGTH + 2, am) != NULL) {
@@ -175,7 +175,7 @@ FILE *firstphase(FILE *am, char *filename, struct listnode *instructions, struct
 	ob = NULL;
 	if (!haserrors && (instructioncount > 0 || datacount > 0)) {
 		strcat(filename, ".ob");
-		ob = fopen(filename, "r");
+		ob = open(filename, "r");
 		replaceextension(filename, "");
 	}
 	return ob;

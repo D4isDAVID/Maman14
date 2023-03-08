@@ -36,7 +36,7 @@ int main(int argc, char **argv)
 		filename = alloc(sizeof(char) * (strlen(argv[i]) + 5)); /* enough space for filename + extension + null terminator */
 		strcpy(filename, argv[i]);
 		strcat(filename, ".as");
-		as = fopen(filename, "r");
+		as = open(filename, "r");
 		if (as == NULL) {
 			fprintf(stderr, "Error in opening %s\n", filename);
 			return 1;

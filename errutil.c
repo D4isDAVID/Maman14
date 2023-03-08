@@ -1,7 +1,6 @@
 /* error message utilities for the first & second phases */
 #include "errutil.h"
 
-#include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
 #include "hashmap.h"
@@ -14,6 +13,16 @@ void *alloc(size_t s)
 		exit(1);
 	}
 	return ptr;
+}
+
+FILE *open(char *filename, char *mode)
+{
+	FILE *f = fopen(filename, mode);
+	if (f == NULL) {
+		fprintf(stderr, "error: failed to open file (%s)", filename);
+		exit(1);
+	}
+	return f;
 }
 
 char **msg;
