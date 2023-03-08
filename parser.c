@@ -5,6 +5,8 @@
 #include <ctype.h>
 #include "strutil.h"
 
+/* encodes the given string as a number and appends it to the linked list.
+	returns whether the function was given a valid number or not */
 int encodenum(char *s, struct listnode **dataptr, int *datacount)
 {
 	int isnegative;
@@ -24,6 +26,8 @@ int encodenum(char *s, struct listnode **dataptr, int *datacount)
 	return 1;
 }
 
+/* encodes the given string as an array of characters and appends it to the linked list.
+	returns a parser error number */
 enum parsererrno encodestring(char *s, struct listnode **dataptr, int *datacount)
 {
 	struct listnode *tmp;
@@ -40,7 +44,7 @@ enum parsererrno encodestring(char *s, struct listnode **dataptr, int *datacount
 		if (!isprint(*s))
 			return PARSER_INVALIDCHAR;
 		w = (word *) malloc(sizeof(*w));
-		w->field = s == end-1 ? '\0' : *s;
+		w->field = s == end-1 ? '\0' : *s; /* null terminator if we are at the end of the string */
 		tmp = linkedlist_newnode(w);
 		if (*dataptr != NULL)
 			(*dataptr)->next = tmp;
@@ -50,6 +54,8 @@ enum parsererrno encodestring(char *s, struct listnode **dataptr, int *datacount
 	return PARSER_OK;
 }
 
+/* parses parameters in the given string from `i` and appends them to the given linked list.
+	returns a parser error number */
 enum parsererrno parseparams(char *line, int *i, int paramamount, struct listnode **head)
 {
 	int count, ii;
@@ -97,6 +103,7 @@ enum addressmethod determineaddressmethod(char *s)
 	return ADDRESS_DIRECT;
 }
 
+/* returns whether the given string is a valid number (operator `+`/`-` followed by digits `0-9`) */
 int isvalidnum(char *s)
 {
 	if (*s != '-' && *s != '+' && !isdigit(*s))
@@ -107,6 +114,7 @@ int isvalidnum(char *s)
 	return 1;
 }
 
+/* returns whether the given string is a valid label (30 characters long and starts with a letter followed by letters or digits) */
 int isvalidlabel(char *s)
 {
 	int count;
@@ -149,6 +157,7 @@ int countnonwhitespace(char line[], int *i)
 	return count;
 }
 
+/* duplicates the given string until the given character */
 char *dupluntil(char *s, char c)
 {
 	int count;

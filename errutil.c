@@ -1,3 +1,4 @@
+/* error message utilities for the first & second phases */
 #include "errutil.h"
 
 #include <stdio.h>

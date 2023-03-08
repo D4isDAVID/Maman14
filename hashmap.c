@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+/* returns a hash of the given string */
 unsigned int hash(char *key)
 {
 	unsigned int hashval;
@@ -13,6 +14,7 @@ unsigned int hash(char *key)
 	return hashval % HASHMAP_CAPACITY;
 }
 
+/* creates a new empty hashmap */
 struct hashmap *hashmap_new(void)
 {
 	struct hashmap *m = (struct hashmap *) malloc(sizeof(*m));
@@ -20,6 +22,7 @@ struct hashmap *hashmap_new(void)
 	return m;
 }
 
+/* frees the entire hashmap */
 void hashmap_free(struct hashmap *m)
 {
 	struct hashnode *n, *tmp;
@@ -39,6 +42,7 @@ void hashmap_free(struct hashmap *m)
 	free(m);
 }
 
+/* copies the entirety of one hashmap to the other */
 void hashmap_copy(struct hashmap *dest, struct hashmap *src)
 {
 	int i;
@@ -85,6 +89,7 @@ char *hashmap_getstr(struct hashmap *m, char *key)
 	return m == NULL || (n = getnode(m, key)) == NULL || n->type != HASHMAP_VAL_STR ? NULL : (char *) n->value;
 }
 
+/* prepares a new node and returns it to later have its value set */
 struct hashnode *preparenode(struct hashmap *m, char *key)
 {
 	struct hashnode *n;
@@ -134,6 +139,7 @@ void *hashmap_setstr(struct hashmap *m, char *key, char *value)
 	return n->value;
 }
 
+/* utility function for bitfields */
 void hashmap_addbittofield(struct hashmap *m, char *key, int value)
 {
 	int *n;

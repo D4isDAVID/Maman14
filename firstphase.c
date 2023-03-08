@@ -1,4 +1,4 @@
-/* first assembler phase */
+/* first assembler phase: garners any information it can about the code (instructions, data, labels) and passes it all to the second phase */
 #include "firstphase.h"
 
 #include <string.h>
