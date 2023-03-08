@@ -7,6 +7,87 @@
 #include "strutil.h"
 #include "errutil.h"
 
+void addinstructiontolist(void *value, int islabel, struct listnode **instructionptr, int *instructioncount)
+{
+	instruction *inst = (instruction *) alloc(sizeof(*inst));
+	inst->value = value;
+	inst->islabel = islabel;
+	(*instructionptr)->next = linkedlist_newnode(inst);
+	*instructionptr = (*instructionptr)->next;
+	(*instructioncount)++;
+}
+
+int addnumtoinstructions(char *value, struct listnode **instructionptr, int *instructioncount)
+{
+	instruction *inst;
+	if (!encodenum(value, instructionptr, instructioncount))
+		return 0;
+	inst = (instruction *) alloc(sizeof(*inst));
+	inst->value = (word *) (*instructionptr)->value;
+	inst->islabel = 0;
+	((word *) inst->value)->field <<= 2;
+	(*instructionptr)->value = inst;
+	return 1;
+}
+
+enum parsererrno encodeoperation(char *opname, enum symbol opcode, struct listnode **params, struct listnode **instructionptr, int *instructioncount)
+{
+	struct listnode *paramptr = *params;
+	word *first = (word *) alloc(sizeof(*first)), *registers = NULL;
+	int addressmethod = 0, methods = 0;
+
+	first->field = 0;
+	addinstructiontolist(first, 0, instructionptr, instructioncount);
+
+	/* opcode */
+	first->field |= (opcode) << 6;
+
+	/* address methods + parameters 1 & 2 */
+	if (isjumpoperation(opcode)) {
+		first->field |= (paramptr->next == NULL ? ADDRESS_DIRECT : ADDRESS_JUMP_WITH_PARAMS) << 2;
+		addinstructiontolist(strdupl((char *) paramptr->value), 1, instructionptr, instructioncount);
+		paramptr = paramptr->next;
+	}
+	while (paramptr != NULL) {
+		addressmethod = determineaddressmethod(paramptr->value);
+		methods <<= 2;
+		methods |= addressmethod;
+		if (registers != NULL && addressmethod != ADDRESS_DIRECT_REGISTER) {
+			addinstructiontolist(registers, 0, instructionptr, instructioncount);
+			registers = NULL;
+		}
+		switch (addressmethod) {
+		case ADDRESS_INSTANT:
+			if (!addnumtoinstructions(&((char *) paramptr->value)[1], instructionptr, instructioncount)) {
+				*params = paramptr;
+				return PARSER_EINVALIDNUMBER;
+			}
+			break;
+		case ADDRESS_ERROR:
+			*params = paramptr;
+			return PARSER_EINVALIDNUMBER;
+		case ADDRESS_DIRECT:
+			addinstructiontolist(strdupl(paramptr->value), 1, instructionptr, instructioncount);
+			break;
+		case ADDRESS_DIRECT_REGISTER:
+			if (registers == NULL) {
+				registers = (word *) alloc(sizeof(*registers));
+				registers->field = 0;
+			}
+			registers->field |= atoi(&((char *) paramptr->value)[1]) << (paramptr->next == NULL ? 2 : 8);
+			break;
+		default:
+			break;
+		}
+		paramptr = paramptr->next;
+	}
+	if (registers != NULL)
+		addinstructiontolist(registers, 0, instructionptr, instructioncount);
+	first->field |= methods << (isjumpoperation(opcode) ? 10 : 2);
+
+	return PARSER_OK;
+}
+
 /* encodes the given string as a number and appends it to the linked list.
 	returns whether the function was given a valid number or not */
 int encodenum(char *s, struct listnode **dataptr, int *datacount)

@@ -38,8 +38,8 @@ enum symbol {
 
 enum encoding {
 	ENC_ABSOLUTE,
-	ENC_EXTERNAL,
-	ENC_RELOCATABLE
+	ENC_EXTERNAL, /* externals */
+	ENC_RELOCATABLE /* labels */
 };
 
 enum addressmethod {

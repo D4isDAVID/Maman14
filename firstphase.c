@@ -151,11 +151,12 @@ FILE *firstphase(FILE *am, char *filename, struct listnode *instructions, struct
 				hashmap_setint(labels, labelname, instructioncount);
 				hashmap_addbittofield(labelattributes, labelname, LABEL_INSTRUCTION);
 			}
-			while (params != NULL) {
-				printf("%s\n", (char *) params->value);
-				params = params->next;
+			switch (encodeoperation(opname, opcode, &params, &instructionptr, &instructioncount)) {
+			case PARSER_EINVALIDNUMBER:
+				printerr(filename, linecount, i-count, ERROR_DATAINVALIDNUMBER, (char *) params->value);
+			default:
+				break;
 			}
-			/*encodeoperation(opname, opcode, params, &instructionptr, &instructioncount);*/
 		} else {
 			haserrors = 1;
 			printerr(filename, linecount, i-count, ERROR_UNKNOWNINSTRUCTION, opname);
