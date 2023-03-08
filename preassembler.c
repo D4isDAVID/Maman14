@@ -20,6 +20,7 @@ char *macrocontentalloc(FILE *);
 FILE *preassembler(FILE *as, char *filename)
 {
 	char line[MAX_LINE_LENGTH + 2], /* current source code line including null terminator and possible newline */
+		*newlineptr,
 		*macroname, /*  name name in current macro definition */
 		*macrocontent; /* macro content in current macro definition or replacement */
 	int i, /* current character in current line */
@@ -54,8 +55,6 @@ FILE *preassembler(FILE *as, char *filename)
 						fputs(&line[lineoffset], am);
 						fputs(macrocontent, am); /* print the macro content */
 						lineoffset = i; /* offset the line to print the current line after the macro name */
-						if (line[i] == '\n') /* avoid double newlines */
-							line[i] = '\0';
 					}
 					free(macroname);
 					if (skipwhitespace(line, &i) == 0)
@@ -68,6 +67,9 @@ FILE *preassembler(FILE *as, char *filename)
 		else
 			if (isvalidendmcr(line, &i, &count)) {
 				macrodef = 0;
+				newlineptr = strrchr(macrocontent, '\n');
+				if (newlineptr != NULL)
+					*newlineptr = '\0';
 				hashmap_setstr(macros, macroname, macrocontent);
 				free(macroname);
 				free(macrocontent);
