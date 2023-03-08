@@ -2,6 +2,8 @@
 #define SYMBOLS_H
 
 enum symbol {
+	UNKNOWN_SYMBOL = -1,
+
 	OPCODE_MOV,
 	OPCODE_CMP,
 	OPCODE_ADD,
@@ -31,9 +33,7 @@ enum symbol {
 	REGISTER_FOUR,
 	REGISTER_FIVE,
 	REGISTER_SIX,
-	REGISTER_SEVEN,
-
-	UNKNOWN_SYMBOL
+	REGISTER_SEVEN
 };
 
 enum encoding {

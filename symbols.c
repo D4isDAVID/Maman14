@@ -91,7 +91,7 @@ enum symbol symbols_get(char *op)
 /* returns the parameter amount of the given operation */
 enum paramamount symbols_getparamamount(enum symbol op)
 {
-	if (op >= paramamountsize)
+	if (op < 0 || op >= paramamountsize)
 		return PARAM_UNKNOWN;
 	return paramamounts[op];
 }
