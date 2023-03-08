@@ -4,6 +4,7 @@
 #include <string.h>
 #include <ctype.h>
 #include "strutil.h"
+#include "errutil.h"
 
 /* encodes the given string as a number and appends it to the linked list.
 	returns whether the function was given a valid number or not */
@@ -14,7 +15,7 @@ int encodenum(char *s, struct listnode **dataptr, int *datacount)
 	if (!isvalidnum(s))
 		return 0;
 	isnegative = *s == '-';
-	w = (word *) malloc(sizeof(*w));
+	w = (word *) alloc(sizeof(*w));
 	if (*s == '-' || *s == '+')
 		s++;
 	w->field = atoi(s) - isnegative;
@@ -43,7 +44,7 @@ enum parsererrno encodestring(char *s, struct listnode **dataptr, int *datacount
 	for (s++; s != end; s++) {
 		if (!isprint(*s))
 			return PARSER_INVALIDCHAR;
-		w = (word *) malloc(sizeof(*w));
+		w = (word *) alloc(sizeof(*w));
 		w->field = s == end-1 ? '\0' : *s; /* null terminator if we are at the end of the string */
 		tmp = linkedlist_newnode(w);
 		if (*dataptr != NULL)

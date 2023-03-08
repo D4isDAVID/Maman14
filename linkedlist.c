@@ -2,11 +2,12 @@
 #include "linkedlist.h"
 
 #include <stdlib.h>
+#include "errutil.h"
 
 /* creates a new list node with the given value */
 struct listnode *linkedlist_newnode(void *value)
 {
-	struct listnode *n = (struct listnode *) malloc(sizeof(*n));
+	struct listnode *n = (struct listnode *) alloc(sizeof(*n));
 	n->value = value;
 	n->next = NULL;
 	return n;

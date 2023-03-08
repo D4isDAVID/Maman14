@@ -7,13 +7,14 @@
 #include "hashmap.h"
 #include "parser.h"
 #include "strutil.h"
+#include "errutil.h"
 
 #define MCR "mcr"
 #define ENDMCR "endmcr"
 
 int isvalidmcr(char *, int *, int *, char **);
 int isvalidendmcr(char *, int *, int *);
-char *getmacrocontentptr(FILE *);
+char *macrocontentalloc(FILE *);
 
 /* preassembler entry point */
 FILE *preassembler(FILE *as, char *filename)
@@ -43,7 +44,7 @@ FILE *preassembler(FILE *as, char *filename)
 
 		if (!macrodef)
 			if (isvalidmcr(line, &i, &count, &macroname)) {
-				macrocontent = getmacrocontentptr(as);
+				macrocontent = macrocontentalloc(as);
 				macrodef = 1;
 			} else {
 				while (count > 0) {
@@ -80,8 +81,8 @@ FILE *preassembler(FILE *as, char *filename)
 	return am;
 }
 
-/* counts amount of lines until nearest `endmcr` and returns a string with enough memory for the macro content */
-char *getmacrocontentptr(FILE *as)
+/* counts amount of lines until nearest `endmcr` and allocates a string with enough memory for the macro content */
+char *macrocontentalloc(FILE *as)
 {
 	char line[MAX_LINE_LENGTH + 2]; /* current line in file */
 	int i, /* current character in current line */
@@ -98,7 +99,7 @@ char *getmacrocontentptr(FILE *as)
 		lines++;
 	}
 	fsetpos(as, &p);
-	return (char *) malloc(sizeof(char) * ((MAX_LINE_LENGTH + 1) * lines) + 1);
+	return (char *) alloc(sizeof(char) * ((MAX_LINE_LENGTH + 1) * lines) + 1);
 }
 
 /* returns whether the given line at the current location is a valid `mcr` statement

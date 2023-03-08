@@ -6,11 +6,21 @@
 #include <stdarg.h>
 #include "hashmap.h"
 
+void *alloc(size_t s)
+{
+	void *ptr = malloc(s);
+	if (ptr == NULL) {
+		fprintf(stderr, "error: failed to allocate memory");
+		exit(1);
+	}
+	return ptr;
+}
+
 char **msg;
 
 void errutil_prepare(void)
 {
-	msg = (char **) malloc(sizeof(*msg) * ERRORCOUNT);
+	msg = (char **) alloc(sizeof(*msg) * ERRORCOUNT);
 
 	msg[ERROR_LABELINVALIDNAME] = "label names can't be more than 30 characters long, and must start with a letter followed by letters or numbers (%s)";
 	msg[ERROR_LABELSYMBOL] = "label name must not be a pre-defined symbol (%s)";

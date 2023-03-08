@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "errutil.h"
 
 /* returns a hash of the given string */
 unsigned int hash(char *key)
@@ -17,7 +18,7 @@ unsigned int hash(char *key)
 /* creates a new empty hashmap */
 struct hashmap *hashmap_new(void)
 {
-	struct hashmap *m = (struct hashmap *) malloc(sizeof(*m));
+	struct hashmap *m = (struct hashmap *) alloc(sizeof(*m));
 	m->size = 0;
 	return m;
 }
@@ -73,16 +74,8 @@ struct hashnode *preparenode(struct hashmap *m, char *key)
 	if (m == NULL)
 		return NULL;
 	if ((n = getnode(m, key)) == NULL) {
-		n = (struct hashnode *) malloc(sizeof(*n));
-		if (n == NULL) {
-			fprintf(stderr, "error: failed to allocate memory for hashnode");
-			exit(1);
-		}
-		n->key = (char *) malloc(sizeof(char) * strlen(key));
-		if (n->key == NULL) {
-			fprintf(stderr, "error: failed to allocate memory for hashnode value");
-			exit(1);
-		}
+		n = (struct hashnode *) alloc(sizeof(*n));
+		n->key = (char *) alloc(sizeof(char) * strlen(key));
 		strcpy(n->key, key);
 		hashval = hash(key);
 		n->next = m->tab[hashval];
@@ -98,7 +91,7 @@ void *hashmap_setint(struct hashmap *m, char *key, int value)
 	struct hashnode *n = preparenode(m, key);
 	if (m == NULL || n == NULL)
 		return NULL;
-	n->value = malloc(sizeof(value));
+	n->value = alloc(sizeof(value));
 	*((int *) n->value) = value;
 	n->type = HASHMAP_VAL_INT;
 	return n->value;
@@ -109,7 +102,7 @@ void *hashmap_setstr(struct hashmap *m, char *key, char *value)
 	struct hashnode *n = preparenode(m, key);
 	if (m == NULL || n == NULL)
 		return NULL;
-	n->value = malloc(sizeof(char) * strlen(value));
+	n->value = alloc(sizeof(char) * strlen(value));
 	strcpy(n->value, value);
 	n->type = HASHMAP_VAL_STR;
 	return n->value;

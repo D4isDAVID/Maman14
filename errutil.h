@@ -21,6 +21,8 @@ enum errutil_errno {
 	ERRORCOUNT /* amount of errutil_errno values for later use */
 };
 
+void *alloc(size_t);
+
 void errutil_prepare(void);
 void errutil_free(void);
 

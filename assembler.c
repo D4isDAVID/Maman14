@@ -33,7 +33,7 @@ int main(int argc, char **argv)
 	data = linkedlist_newnode("");
 
 	for (i = 1; i < argc; i++) {
-		filename = malloc(sizeof(char) * (strlen(argv[i]) + 5)); /* enough space for filename + extension + null terminator */
+		filename = alloc(sizeof(char) * (strlen(argv[i]) + 5)); /* enough space for filename + extension + null terminator */
 		strcpy(filename, argv[i]);
 		strcat(filename, ".as");
 		as = fopen(filename, "r");

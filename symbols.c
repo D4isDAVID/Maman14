@@ -3,6 +3,7 @@
 
 #include <stdlib.h>
 #include "hashmap.h"
+#include "errutil.h"
 
 struct hashmap *operations, *directives, *registers;
 enum paramamount *paramamounts;
@@ -45,7 +46,7 @@ void symbols_prepare(void)
 	hashmap_setint(registers, "r7", REGISTER_SEVEN);
 
 	paramamountsize = operations->size + directives->size;
-	paramamounts = (enum paramamount *) malloc(sizeof(*paramamounts) * paramamountsize);
+	paramamounts = (enum paramamount *) alloc(sizeof(*paramamounts) * paramamountsize);
 	paramamounts[OPCODE_MOV] = PARAM_TWO;
 	paramamounts[OPCODE_CMP] = PARAM_TWO;
 	paramamounts[OPCODE_ADD] = PARAM_TWO;
