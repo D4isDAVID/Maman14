@@ -5,6 +5,25 @@
 #include <ctype.h>
 #include "strutil.h"
 
+int encodenum(char *s, struct listnode **data, int *datacount)
+{
+	int isnegative;
+	word *w;
+	if (!isvalidnum(s))
+		return 0;
+	isnegative = *s == '-';
+	w = (word *) malloc(sizeof(*w));
+	if (*s == '-' || *s == '+')
+		s++;
+	w->field = atoi(s) - isnegative;
+	if (isnegative)
+		w->field = ~w->field;
+	(*data)->next = linkedlist_newnode(w);
+	*data = (*data)->next;
+	(*datacount)++;
+	return 1;
+}
+
 enum parsererrno encodestring(char *s, struct listnode **data, int *datacount)
 {
 	struct listnode *tmp, *n = *data;

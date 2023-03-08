@@ -22,6 +22,7 @@ typedef struct word {
 	unsigned int field : 14;
 } word;
 
+int encodenum(char *, struct listnode **, int *);
 enum parsererrno encodestring(char *, struct listnode **, int *);
 enum parsererrno parseparams(char *, int *, int, struct listnode **);
 enum addressmethod determineaddressmethod(char *s);

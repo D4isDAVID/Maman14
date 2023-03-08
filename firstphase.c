@@ -103,11 +103,7 @@ FILE *firstphase(FILE *am, char *filename, struct listnode *instructions, struct
 				}
 				if (opcode == DIRECTIVE_DATA) {
 					while (params != NULL) {
-						if (isvalidnum((char *) params->value)) {
-							/* TODO:
-							encodenum(params->value, &data, &datacount);
-							 */
-						} else {
+						if (!encodenum((char *) params->value, &dataptr, &datacount)) {
 							haserrors = 1;
 							printerr(filename, linecount, i-count, ERROR_DATAINVALIDNUMBER, (char *) params->value);
 						}
