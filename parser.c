@@ -5,7 +5,7 @@
 #include <ctype.h>
 #include "strutil.h"
 
-int encodenum(char *s, struct listnode **data, int *datacount)
+int encodenum(char *s, struct listnode **dataptr, int *datacount)
 {
 	int isnegative;
 	word *w;
@@ -18,15 +18,15 @@ int encodenum(char *s, struct listnode **data, int *datacount)
 	w->field = atoi(s) - isnegative;
 	if (isnegative)
 		w->field = ~w->field;
-	(*data)->next = linkedlist_newnode(w);
-	*data = (*data)->next;
+	(*dataptr)->next = linkedlist_newnode(w);
+	*dataptr = (*dataptr)->next;
 	(*datacount)++;
 	return 1;
 }
 
-enum parsererrno encodestring(char *s, struct listnode **data, int *datacount)
+enum parsererrno encodestring(char *s, struct listnode **dataptr, int *datacount)
 {
-	struct listnode *tmp, *n = *data;
+	struct listnode *tmp;
 	char *end;
 	word *w;
 	int i = 0;
@@ -40,13 +40,11 @@ enum parsererrno encodestring(char *s, struct listnode **data, int *datacount)
 		if (!isprint(*s))
 			return PARSER_INVALIDCHAR;
 		w = (word *) malloc(sizeof(*w));
-		w->field = *s;
+		w->field = s == end-1 ? '\0' : *s;
 		tmp = linkedlist_newnode(w);
-		if (n != NULL)
-			(n)->next = tmp;
-		else
-			*data = tmp;
-		n = tmp;
+		if (*dataptr != NULL)
+			(*dataptr)->next = tmp;
+		*dataptr = tmp;
 		(*datacount)++;
 	}
 	return PARSER_OK;
