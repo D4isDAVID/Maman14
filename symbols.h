@@ -2,6 +2,8 @@
 #define SYMBOLS_H
 
 enum symbol {
+	UNKNOWN_SYMBOL = -1,
+
 	OPCODE_MOV,
 	OPCODE_CMP,
 	OPCODE_ADD,
@@ -31,29 +33,21 @@ enum symbol {
 	REGISTER_FOUR,
 	REGISTER_FIVE,
 	REGISTER_SIX,
-	REGISTER_SEVEN,
-
-	UNKNOWN_SYMBOL
+	REGISTER_SEVEN
 };
 
 enum encoding {
 	ENC_ABSOLUTE,
-	ENC_EXTERNAL,
-	ENC_RELOCATABLE
+	ENC_EXTERNAL, /* externals */
+	ENC_RELOCATABLE /* labels */
 };
 
 enum addressmethod {
-	ADDRESS_INSTANT,
-	ADDRESS_DIRECT,
+	ADDRESS_ERROR = -1,
+	ADDRESS_INSTANT, /* instant number */
+	ADDRESS_DIRECT, /* label */
 	ADDRESS_JUMP_WITH_PARAMS,
-	ADDRESS_DIRECT_REGISTER,
-	ADDRESS_ERROR
-};
-
-enum jumpparamtype {
-	INSTANT_NUMBER,
-	LABEL,
-	REGISTER = 3
+	ADDRESS_DIRECT_REGISTER /* register */
 };
 
 enum paramamount {
@@ -61,7 +55,8 @@ enum paramamount {
 	PARAM_UNKNOWN,
 	PARAM_NONE,
 	PARAM_SINGLE,
-	PARAM_TWO
+	PARAM_TWO,
+	PARAM_JUMP
 };
 
 enum labelattribute {

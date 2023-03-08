@@ -1,4 +1,4 @@
-/* first assembler phase */
+/* first assembler phase: garners any information it can about the code (instructions, data, labels) and passes it all to the second phase */
 #include "firstphase.h"
 
 #include <string.h>
@@ -23,13 +23,13 @@ FILE *firstphase(FILE *am, char *filename, struct listnode *instructions, struct
 		haserrors = 0; /* whether an error has been detected somewhere in the file */
 	enum symbol opcode; /* operation code in current line */
 	struct listnode *params,
-		*instructionsptr = instructions,
+		*instructionptr = instructions,
 		*dataptr = data;
 	struct hashnode *attributesptr;
 	FILE *ob;
 
 	strcat(filename, ".ob");
-	ob = fopen(filename, "w");
+	ob = open(filename, "w");
 	replaceextension(filename, ""); /* we need the filename without .ob extension to print in error messages */
 
 	while (fgets(line, MAX_LINE_LENGTH + 2, am) != NULL) {
@@ -77,11 +77,15 @@ FILE *firstphase(FILE *am, char *filename, struct listnode *instructions, struct
 			break;
 		case PARSER_ENOTENOUGHPARAMS:
 			haserrors = 1;
-			printerr(filename, linecount, i-count, ERROR_PARAMSNOTENOUGH, paramamount);
+			printerr(filename, linecount, i-count, paramamount == PARAM_JUMP ? ERROR_PARAMSJUMP : ERROR_PARAMSNOTENOUGH, paramamount);
 			break;
 		case PARSER_ETOOMANYPARAMS:
 			haserrors = 1;
-			printerr(filename, linecount, i-count, ERROR_PARAMSTOOMANY, paramamount);
+			printerr(filename, linecount, i-count, paramamount == PARAM_JUMP ? ERROR_PARAMSJUMP : ERROR_PARAMSTOOMANY, paramamount);
+			break;
+		case PARSER_EJUMPPARAMS:
+			haserrors = 1;
+			printerr(filename, linecount, i-count, ERROR_PARAMSJUMP);
 			break;
 		default:
 			break;
@@ -103,11 +107,7 @@ FILE *firstphase(FILE *am, char *filename, struct listnode *instructions, struct
 				}
 				if (opcode == DIRECTIVE_DATA) {
 					while (params != NULL) {
-						if (isvalidnum((char *) params->value)) {
-							/* TODO:
-							encodenum(params->value, &data, &datacount);
-							 */
-						} else {
+						if (!encodenum((char *) params->value, &dataptr, &datacount)) {
 							haserrors = 1;
 							printerr(filename, linecount, i-count, ERROR_DATAINVALIDNUMBER, (char *) params->value);
 						}
@@ -123,7 +123,7 @@ FILE *firstphase(FILE *am, char *filename, struct listnode *instructions, struct
 						haserrors = 1;
 						printerr(filename, linecount, i-count, ERROR_STRINGUNFINISHED);
 						break;
-					case PARSER_INVALIDCHAR:
+					case PARSER_EINVALIDCHAR:
 						haserrors = 1;
 						printerr(filename, linecount, i-count, ERROR_STRINGASCII);
 						break;
@@ -151,8 +151,12 @@ FILE *firstphase(FILE *am, char *filename, struct listnode *instructions, struct
 				hashmap_setint(labels, labelname, instructioncount);
 				hashmap_addbittofield(labelattributes, labelname, LABEL_INSTRUCTION);
 			}
-			/* TODO */
-			instructioncount++;
+			switch (encodeoperation(opname, opcode, &params, &instructionptr, &instructioncount)) {
+			case PARSER_EINVALIDNUMBER:
+				printerr(filename, linecount, i-count, ERROR_DATAINVALIDNUMBER, (char *) params->value);
+			default:
+				break;
+			}
 		} else {
 			haserrors = 1;
 			printerr(filename, linecount, i-count, ERROR_UNKNOWNINSTRUCTION, opname);
@@ -179,7 +183,7 @@ FILE *firstphase(FILE *am, char *filename, struct listnode *instructions, struct
 	ob = NULL;
 	if (!haserrors && (instructioncount > 0 || datacount > 0)) {
 		strcat(filename, ".ob");
-		ob = fopen(filename, "r");
+		ob = open(filename, "r");
 		replaceextension(filename, "");
 	}
 	return ob;

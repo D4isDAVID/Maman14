@@ -1,7 +1,6 @@
 #ifndef PARSER_H
 #define PARSER_H
 
-#include <stdio.h>
 #include "linkedlist.h"
 #include "symbols.h"
 
@@ -15,13 +14,22 @@ enum parsererrno {
 	PARSER_ETOOMANYPARAMS,
 	PARSER_EEXPECTEDQUOTES,
 	PARSER_EUNFINISHEDSTRING,
-	PARSER_INVALIDCHAR
+	PARSER_EINVALIDCHAR,
+	PARSER_EJUMPPARAMS,
+	PARSER_EINVALIDNUMBER
 };
 
 typedef struct word {
 	unsigned int field : 14;
 } word;
 
+typedef struct instruction {
+	void *value;
+	int islabel;
+} instruction;
+
+enum parsererrno encodeoperation(char *, enum symbol, struct listnode **, struct listnode **, int *);
+int encodenum(char *, struct listnode **, int *);
 enum parsererrno encodestring(char *, struct listnode **, int *);
 enum parsererrno parseparams(char *, int *, int, struct listnode **);
 enum addressmethod determineaddressmethod(char *s);

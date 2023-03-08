@@ -3,8 +3,9 @@
 
 #include <stdlib.h>
 #include "hashmap.h"
+#include "errutil.h"
 
-struct hashmap *symbols, *operations, *directives, *registers;
+struct hashmap *operations, *directives, *registers;
 enum paramamount *paramamounts;
 int paramamountsize;
 
@@ -44,13 +45,11 @@ void symbols_prepare(void)
 	hashmap_setint(registers, "r6", REGISTER_SIX);
 	hashmap_setint(registers, "r7", REGISTER_SEVEN);
 
-	symbols = hashmap_new();
-	hashmap_copy(symbols, operations);
-	hashmap_copy(symbols, directives);
-	hashmap_copy(symbols, registers);
-
-	paramamountsize = hashmap_sizeof(operations) + hashmap_sizeof(directives);
-	paramamounts = (enum paramamount *) malloc(sizeof(*paramamounts) * paramamountsize);
+	paramamountsize = operations->size + directives->size;
+	paramamounts = (enum paramamount *) alloc(sizeof(*paramamounts) * paramamountsize);
+	paramamounts[OPCODE_JMP] = PARAM_JUMP;
+	paramamounts[OPCODE_BNE] = PARAM_JUMP;
+	paramamounts[OPCODE_JSR] = PARAM_JUMP;
 	paramamounts[OPCODE_MOV] = PARAM_TWO;
 	paramamounts[OPCODE_CMP] = PARAM_TWO;
 	paramamounts[OPCODE_ADD] = PARAM_TWO;
@@ -60,37 +59,39 @@ void symbols_prepare(void)
 	paramamounts[OPCODE_CLR] = PARAM_SINGLE;
 	paramamounts[OPCODE_INC] = PARAM_SINGLE;
 	paramamounts[OPCODE_DEC] = PARAM_SINGLE;
-	paramamounts[OPCODE_JMP] = PARAM_UNKNOWN;
-	paramamounts[OPCODE_BNE] = PARAM_UNKNOWN;
 	paramamounts[OPCODE_RED] = PARAM_SINGLE;
 	paramamounts[OPCODE_PRN] = PARAM_SINGLE;
-	paramamounts[OPCODE_JSR] = PARAM_UNKNOWN;
 	paramamounts[OPCODE_RTS] = PARAM_NONE;
 	paramamounts[OPCODE_STOP] = PARAM_NONE;
-	paramamounts[DIRECTIVE_DATA] = PARAM_LIST;
 	paramamounts[DIRECTIVE_STRING] = PARAM_UNKNOWN;
+	paramamounts[DIRECTIVE_DATA] = PARAM_LIST;
 	paramamounts[DIRECTIVE_ENTRY] = PARAM_SINGLE;
 	paramamounts[DIRECTIVE_EXTERN] = PARAM_SINGLE;
 }
 
 void symbols_free(void)
 {
-	hashmap_free(symbols);
 	hashmap_free(operations);
+	hashmap_free(directives);
+	hashmap_free(registers);
 	free(paramamounts);
 }
 
 /* returns an enum value of the given symbol, or `UNKNOWN_SYMBOL` for non-existent ones */
 enum symbol symbols_get(char *op)
 {
-	int *code = hashmap_getint(symbols, op);
+	int *code = hashmap_getint(operations, op);
+	if (code == NULL)
+		code = hashmap_getint(directives, op);
+	if (code == NULL)
+		code = hashmap_getint(registers, op);
 	return code == NULL ? UNKNOWN_SYMBOL : *code;
 }
 
 /* returns the parameter amount of the given operation */
 enum paramamount symbols_getparamamount(enum symbol op)
 {
-	if (op >= paramamountsize)
+	if (op < 0 || op >= paramamountsize)
 		return PARAM_UNKNOWN;
 	return paramamounts[op];
 }

@@ -1,3 +1,5 @@
+#include <stdio.h>
+
 enum errutil_errno {
 	ERROR_LABELINVALIDNAME,
 	ERROR_LABELSYMBOL,
@@ -9,6 +11,7 @@ enum errutil_errno {
 	ERROR_PARAMSUNEXPECTEDCOMMA,
 	ERROR_PARAMSNOTENOUGH,
 	ERROR_PARAMSTOOMANY,
+	ERROR_PARAMSJUMP,
 
 	ERROR_DATAINVALIDNUMBER,
 
@@ -20,6 +23,9 @@ enum errutil_errno {
 
 	ERRORCOUNT /* amount of errutil_errno values for later use */
 };
+
+void *alloc(size_t);
+FILE *open(char *filename, char *mode);
 
 void errutil_prepare(void);
 void errutil_free(void);

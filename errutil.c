@@ -1,17 +1,37 @@
+/* error message utilities for the first & second phases */
 #include "errutil.h"
 
-#include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
 #include "hashmap.h"
+
+void *alloc(size_t s)
+{
+	void *ptr = malloc(s);
+	if (ptr == NULL) {
+		fprintf(stderr, "error: failed to allocate memory");
+		exit(1);
+	}
+	return ptr;
+}
+
+FILE *open(char *filename, char *mode)
+{
+	FILE *f = fopen(filename, mode);
+	if (f == NULL) {
+		fprintf(stderr, "error: failed to open file (%s)", filename);
+		exit(1);
+	}
+	return f;
+}
 
 char **msg;
 
 void errutil_prepare(void)
 {
-	msg = (char **) malloc(sizeof(*msg) * ERRORCOUNT);
+	msg = (char **) alloc(sizeof(*msg) * ERRORCOUNT);
 
-	msg[ERROR_LABELINVALIDNAME] = "label names must start with a letter followed by letters or numbers (%s)";
+	msg[ERROR_LABELINVALIDNAME] = "label names can't be more than 30 characters long, and must start with a letter followed by letters or numbers (%s)";
 	msg[ERROR_LABELSYMBOL] = "label name must not be a pre-defined symbol (%s)";
 	msg[ERROR_LABELDEFINED] = "label is already defined (%s)";
 	msg[WARNING_LABELEMPTY] = "label defined without instruction (%s)";
@@ -21,12 +41,13 @@ void errutil_prepare(void)
 	msg[ERROR_PARAMSUNEXPECTEDCOMMA] = "unexpected comma in params list";
 	msg[ERROR_PARAMSNOTENOUGH] = "not enough parameters (expected %d)";
 	msg[ERROR_PARAMSTOOMANY] = "too many parameters (expected %d)";
+	msg[ERROR_PARAMSJUMP] = "jump operations must receive a label followed by either 2 parameters inside parentheses, or no parameters at all";
 
 	msg[ERROR_DATAINVALIDNUMBER] = "invalid number (%s)";
 
 	msg[ERROR_STRINGSTARTQUOTES] = "string declarations must start with quotes (\")";
 	msg[ERROR_STRINGUNFINISHED] = "unfinished string (strings must end with quotes \")";
-	msg[ERROR_STRINGASCII] = "strings must onlycontain printable ascii characters";
+	msg[ERROR_STRINGASCII] = "strings must only contain printable ascii characters";
 
 	msg[ERROR_UNKNOWNINSTRUCTION] = "unknown instruction (%s)";
 }
