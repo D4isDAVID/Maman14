@@ -49,7 +49,7 @@ void symbols_prepare(void)
 	hashmap_copy(symbols, directives);
 	hashmap_copy(symbols, registers);
 
-	paramamountsize = hashmap_sizeof(operations) + hashmap_sizeof(directives);
+	paramamountsize = operations->size + directives->size;
 	paramamounts = (enum paramamount *) malloc(sizeof(*paramamounts) * paramamountsize);
 	paramamounts[OPCODE_MOV] = PARAM_TWO;
 	paramamounts[OPCODE_CMP] = PARAM_TWO;

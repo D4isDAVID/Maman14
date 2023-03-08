@@ -73,11 +73,6 @@ struct hashnode *getnode(struct hashmap *m, char *key)
 	return NULL;
 }
 
-int hashmap_sizeof(struct hashmap *m)
-{
-	return m == NULL ? 0 : m->size;
-}
-
 int *hashmap_getint(struct hashmap *m, char *key)
 {
 	struct hashnode *n;
