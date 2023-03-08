@@ -43,17 +43,11 @@ enum encoding {
 };
 
 enum addressmethod {
-	ADDRESS_INSTANT,
-	ADDRESS_DIRECT,
+	ADDRESS_ERROR = -1,
+	ADDRESS_INSTANT, /* instant number */
+	ADDRESS_DIRECT, /* label */
 	ADDRESS_JUMP_WITH_PARAMS,
-	ADDRESS_DIRECT_REGISTER,
-	ADDRESS_ERROR
-};
-
-enum jumpparamtype {
-	INSTANT_NUMBER,
-	LABEL,
-	REGISTER = 3
+	ADDRESS_DIRECT_REGISTER /* register */
 };
 
 enum paramamount {
@@ -61,7 +55,8 @@ enum paramamount {
 	PARAM_UNKNOWN,
 	PARAM_NONE,
 	PARAM_SINGLE,
-	PARAM_TWO
+	PARAM_TWO,
+	PARAM_JUMP
 };
 
 enum labelattribute {

@@ -1,7 +1,6 @@
 #ifndef PARSER_H
 #define PARSER_H
 
-#include <stdio.h>
 #include "linkedlist.h"
 #include "symbols.h"
 
@@ -15,7 +14,8 @@ enum parsererrno {
 	PARSER_ETOOMANYPARAMS,
 	PARSER_EEXPECTEDQUOTES,
 	PARSER_EUNFINISHEDSTRING,
-	PARSER_INVALIDCHAR
+	PARSER_EINVALIDCHAR,
+	PARSER_EJUMPPARAMS
 };
 
 typedef struct word {

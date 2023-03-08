@@ -41,6 +41,7 @@ void errutil_prepare(void)
 	msg[ERROR_PARAMSUNEXPECTEDCOMMA] = "unexpected comma in params list";
 	msg[ERROR_PARAMSNOTENOUGH] = "not enough parameters (expected %d)";
 	msg[ERROR_PARAMSTOOMANY] = "too many parameters (expected %d)";
+	msg[ERROR_PARAMSJUMP] = "jump operations must receive a label followed by either 2 parameters inside parentheses, or no parameters at all";
 
 	msg[ERROR_DATAINVALIDNUMBER] = "invalid number (%s)";
 

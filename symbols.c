@@ -47,6 +47,9 @@ void symbols_prepare(void)
 
 	paramamountsize = operations->size + directives->size;
 	paramamounts = (enum paramamount *) alloc(sizeof(*paramamounts) * paramamountsize);
+	paramamounts[OPCODE_JMP] = PARAM_JUMP;
+	paramamounts[OPCODE_BNE] = PARAM_JUMP;
+	paramamounts[OPCODE_JSR] = PARAM_JUMP;
 	paramamounts[OPCODE_MOV] = PARAM_TWO;
 	paramamounts[OPCODE_CMP] = PARAM_TWO;
 	paramamounts[OPCODE_ADD] = PARAM_TWO;
@@ -56,15 +59,12 @@ void symbols_prepare(void)
 	paramamounts[OPCODE_CLR] = PARAM_SINGLE;
 	paramamounts[OPCODE_INC] = PARAM_SINGLE;
 	paramamounts[OPCODE_DEC] = PARAM_SINGLE;
-	paramamounts[OPCODE_JMP] = PARAM_UNKNOWN;
-	paramamounts[OPCODE_BNE] = PARAM_UNKNOWN;
 	paramamounts[OPCODE_RED] = PARAM_SINGLE;
 	paramamounts[OPCODE_PRN] = PARAM_SINGLE;
-	paramamounts[OPCODE_JSR] = PARAM_UNKNOWN;
 	paramamounts[OPCODE_RTS] = PARAM_NONE;
 	paramamounts[OPCODE_STOP] = PARAM_NONE;
-	paramamounts[DIRECTIVE_DATA] = PARAM_LIST;
 	paramamounts[DIRECTIVE_STRING] = PARAM_UNKNOWN;
+	paramamounts[DIRECTIVE_DATA] = PARAM_LIST;
 	paramamounts[DIRECTIVE_ENTRY] = PARAM_SINGLE;
 	paramamounts[DIRECTIVE_EXTERN] = PARAM_SINGLE;
 }

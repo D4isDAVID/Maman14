@@ -1,6 +1,7 @@
 /* utility parsing functions */
 #include "parser.h"
 
+#include <stdio.h>
 #include <string.h>
 #include <ctype.h>
 #include "strutil.h"
@@ -43,7 +44,7 @@ enum parsererrno encodestring(char *s, struct listnode **dataptr, int *datacount
 		return PARSER_EUNFINISHEDSTRING;
 	for (s++; s != end; s++) {
 		if (!isprint(*s))
-			return PARSER_INVALIDCHAR;
+			return PARSER_EINVALIDCHAR;
 		w = (word *) alloc(sizeof(*w));
 		w->field = s == end-1 ? '\0' : *s; /* null terminator if we are at the end of the string */
 		tmp = linkedlist_newnode(w);
@@ -60,18 +61,32 @@ enum parsererrno encodestring(char *s, struct listnode **dataptr, int *datacount
 enum parsererrno parseparams(char *line, int *i, int paramamount, struct listnode **head)
 {
 	int count, ii;
-	char *param;
+	char *param, *jumpend;
 	struct listnode *n = NULL, *tmp;
 	if (paramamount == PARAM_UNKNOWN)
 		return PARSER_OK;
+	if (paramamount == PARAM_JUMP) {
+		if (strchr(&line[*i], '(') != NULL) {
+			jumpend = strchr(&line[*i], ')');
+			if (jumpend == NULL)
+				return PARSER_EJUMPPARAMS;
+			jumpend++;
+			ii = 0;
+			skipwhitespace(jumpend, &ii);
+			if (countnonwhitespace(jumpend, &ii))
+				return PARSER_EJUMPPARAMS;
+			*(--jumpend) = '\0';
+		} else
+			paramamount = PARAM_SINGLE;
+	}
 	while ((count = countnonwhitespace(line, i)) > 0 && paramamount != 0) {
-		param = dupluntil(&line[(*i)-count], ',');
+		param = dupluntil(&line[(*i)-count], paramamount == PARAM_JUMP ? '(' : ',');
 		*i -= count;
 		ii = 0;
 		if (countnonwhitespace(param, &ii) == 0)
-			return PARSER_EUNEXPECTEDCOMMA;
+			return paramamount == PARAM_JUMP ? PARSER_EJUMPPARAMS : PARSER_EUNEXPECTEDCOMMA;
 		if ((count = skipwhitespace(param, &ii)) > 0) {
-			if (countnonwhitespace(param, &ii) > 0)
+			if (paramamount == PARAM_JUMP || countnonwhitespace(param, &ii) > 0)
 				return PARSER_EUNEXPECTEDSPACE;
 			param[ii-count] = '\0';
 		}
@@ -82,9 +97,12 @@ enum parsererrno parseparams(char *line, int *i, int paramamount, struct listnod
 		if (*head == NULL)
 			*head = n;
 		*i += ii;
-		if (line[*i] == ',')
+		if (line[*i] == (paramamount == PARAM_JUMP ? '(' : ','))
 			(*i)++;
-		skipwhitespace(line, i);
+		else if (paramamount == PARAM_JUMP)
+			return PARSER_EJUMPPARAMS;
+		if (skipwhitespace(line, i) > 0 && paramamount == PARAM_JUMP)
+			return PARSER_EUNEXPECTEDSPACE;
 		paramamount--;
 	}
 	if (paramamount > 0)
@@ -99,7 +117,7 @@ enum addressmethod determineaddressmethod(char *s)
 {
 	if (s[0] == '#')
 		return isvalidnum(&s[1]) ? ADDRESS_INSTANT : ADDRESS_ERROR;
-	else if (s[0] == 'r' && s[1] >= '0' && s[1] <= '7' && s[2] == '\0')
+	else if (isregister(s))
 		return ADDRESS_DIRECT_REGISTER;
 	return ADDRESS_DIRECT;
 }

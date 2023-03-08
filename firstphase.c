@@ -23,7 +23,7 @@ FILE *firstphase(FILE *am, char *filename, struct listnode *instructions, struct
 		haserrors = 0; /* whether an error has been detected somewhere in the file */
 	enum symbol opcode; /* operation code in current line */
 	struct listnode *params,
-		*instructionsptr = instructions,
+		*instructionptr = instructions,
 		*dataptr = data;
 	struct hashnode *attributesptr;
 	FILE *ob;
@@ -77,11 +77,15 @@ FILE *firstphase(FILE *am, char *filename, struct listnode *instructions, struct
 			break;
 		case PARSER_ENOTENOUGHPARAMS:
 			haserrors = 1;
-			printerr(filename, linecount, i-count, ERROR_PARAMSNOTENOUGH, paramamount);
+			printerr(filename, linecount, i-count, paramamount == PARAM_JUMP ? ERROR_PARAMSJUMP : ERROR_PARAMSNOTENOUGH, paramamount);
 			break;
 		case PARSER_ETOOMANYPARAMS:
 			haserrors = 1;
-			printerr(filename, linecount, i-count, ERROR_PARAMSTOOMANY, paramamount);
+			printerr(filename, linecount, i-count, paramamount == PARAM_JUMP ? ERROR_PARAMSJUMP : ERROR_PARAMSTOOMANY, paramamount);
+			break;
+		case PARSER_EJUMPPARAMS:
+			haserrors = 1;
+			printerr(filename, linecount, i-count, ERROR_PARAMSJUMP);
 			break;
 		default:
 			break;
@@ -119,7 +123,7 @@ FILE *firstphase(FILE *am, char *filename, struct listnode *instructions, struct
 						haserrors = 1;
 						printerr(filename, linecount, i-count, ERROR_STRINGUNFINISHED);
 						break;
-					case PARSER_INVALIDCHAR:
+					case PARSER_EINVALIDCHAR:
 						haserrors = 1;
 						printerr(filename, linecount, i-count, ERROR_STRINGASCII);
 						break;
@@ -147,8 +151,11 @@ FILE *firstphase(FILE *am, char *filename, struct listnode *instructions, struct
 				hashmap_setint(labels, labelname, instructioncount);
 				hashmap_addbittofield(labelattributes, labelname, LABEL_INSTRUCTION);
 			}
-			/* TODO */
-			instructioncount++;
+			while (params != NULL) {
+				printf("%s\n", (char *) params->value);
+				params = params->next;
+			}
+			/*encodeoperation(opname, opcode, params, &instructionptr, &instructioncount);*/
 		} else {
 			haserrors = 1;
 			printerr(filename, linecount, i-count, ERROR_UNKNOWNINSTRUCTION, opname);
