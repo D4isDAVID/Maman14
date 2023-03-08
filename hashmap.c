@@ -42,30 +42,6 @@ void hashmap_free(struct hashmap *m)
 	free(m);
 }
 
-/* copies the entirety of one hashmap to the other */
-void hashmap_copy(struct hashmap *dest, struct hashmap *src)
-{
-	int i;
-	struct hashnode *n, *tmp;
-	if (dest == NULL || src == NULL)
-		return;
-	for (i = 0; i < HASHMAP_CAPACITY; i++) {
-		n = src->tab[i];
-		while (n != NULL) {
-			tmp = n->next;
-			switch (n->type) {
-			case HASHMAP_VAL_INT:
-				hashmap_setint(dest, n->key, *((int *) (n->value)));
-				break;
-			case HASHMAP_VAL_STR:
-				hashmap_setstr(dest, n->key, n->value);
-				break;
-			}
-			n = tmp;
-		}
-	}
-}
-
 struct hashnode *getnode(struct hashmap *m, char *key)
 {
 	struct hashnode *n;

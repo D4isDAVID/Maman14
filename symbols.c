@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include "hashmap.h"
 
-struct hashmap *symbols, *operations, *directives, *registers;
+struct hashmap *operations, *directives, *registers;
 enum paramamount *paramamounts;
 int paramamountsize;
 
@@ -44,11 +44,6 @@ void symbols_prepare(void)
 	hashmap_setint(registers, "r6", REGISTER_SIX);
 	hashmap_setint(registers, "r7", REGISTER_SEVEN);
 
-	symbols = hashmap_new();
-	hashmap_copy(symbols, operations);
-	hashmap_copy(symbols, directives);
-	hashmap_copy(symbols, registers);
-
 	paramamountsize = operations->size + directives->size;
 	paramamounts = (enum paramamount *) malloc(sizeof(*paramamounts) * paramamountsize);
 	paramamounts[OPCODE_MOV] = PARAM_TWO;
@@ -75,15 +70,20 @@ void symbols_prepare(void)
 
 void symbols_free(void)
 {
-	hashmap_free(symbols);
 	hashmap_free(operations);
+	hashmap_free(directives);
+	hashmap_free(registers);
 	free(paramamounts);
 }
 
 /* returns an enum value of the given symbol, or `UNKNOWN_SYMBOL` for non-existent ones */
 enum symbol symbols_get(char *op)
 {
-	int *code = hashmap_getint(symbols, op);
+	int *code = hashmap_getint(operations, op);
+	if (code == NULL)
+		code = hashmap_getint(directives, op);
+	if (code == NULL)
+		code = hashmap_getint(registers, op);
 	return code == NULL ? UNKNOWN_SYMBOL : *code;
 }
 
