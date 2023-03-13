@@ -9,7 +9,7 @@ void *alloc(size_t s)
 {
 	void *ptr = malloc(s);
 	if (ptr == NULL) {
-		fprintf(stderr, "error: failed to allocate memory");
+		printf("error: failed to allocate memory");
 		exit(1);
 	}
 	return ptr;
@@ -19,7 +19,7 @@ FILE *open(char *filename, char *mode)
 {
 	FILE *f = fopen(filename, mode);
 	if (f == NULL) {
-		fprintf(stderr, "error: failed to open file (%s)", filename);
+		printf("error: failed to open file (%s)", filename);
 		exit(1);
 	}
 	return f;
@@ -49,6 +49,9 @@ void errutil_prepare(void)
 	msg[ERROR_STRINGUNFINISHED] = "unfinished string (strings must end with quotes \")";
 	msg[ERROR_STRINGASCII] = "strings must only contain printable ascii characters";
 
+	msg[ERROR_SOURCEEMPTY] = "empty source file";
+	msg[ERROR_BINARYOVERFLOW] = "binary file exceeds max memory of 256";
+
 	msg[ERROR_UNKNOWNINSTRUCTION] = "unknown instruction (%s)";
 }
 
@@ -57,27 +60,27 @@ void errutil_free(void)
 	free(msg);
 }
 
-void prettyprint(char *prefix, char *filename, int line, int c, char *s, va_list args)
+void prettyprint(char *prefix, char *filename, int line, char *s, va_list args)
 {
-	fprintf(stderr, "%s: %s.am:%d:%d - ", prefix, filename, line, c);
-	vfprintf(stderr, s, args);
-	fprintf(stderr, "\n");
+	printf("%s: %s.am:%d - ", prefix, filename, line);
+	vprintf(s, args);
+	printf("\n");
 }
 
-void printwarn(char *filename, int line, int c, enum errutil_errno e, ...)
+void printwarn(char *filename, int line, enum errutil_errno e, ...)
 {
 	va_list args;
 	char *s = msg[e];
 	va_start(args, e);
-	prettyprint("warning", filename, line, c, s, args);
+	prettyprint("warning", filename, line, s, args);
 	va_end(args);
 }
 
-void printerr(char *filename, int line, int c, enum errutil_errno e, ...)
+void printerr(char *filename, int line, enum errutil_errno e, ...)
 {
 	va_list args;
 	char *s = msg[e];
 	va_start(args, e);
-	prettyprint("error", filename, line, c, s, args);
+	prettyprint("error", filename, line, s, args);
 	va_end(args);
 }

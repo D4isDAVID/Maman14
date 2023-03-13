@@ -7,6 +7,7 @@
 #include "strutil.h"
 #include "errutil.h"
 
+/* utility function for appending instructions to a linked list */
 void addinstructiontolist(void *value, int islabel, struct listnode **instructionptr, int *instructioncount)
 {
 	instruction *inst = (instruction *) alloc(sizeof(*inst));
@@ -17,10 +18,12 @@ void addinstructiontolist(void *value, int islabel, struct listnode **instructio
 	(*instructioncount)++;
 }
 
-int addnumtoinstructions(char *value, struct listnode **instructionptr, int *instructioncount)
+/* uses `encodenum` to encode the num and append it to the list, and converts it to `struct instruction`.
+	returns whether the given number was valid or not */
+int addnumtoinstructions(char *n, struct listnode **instructionptr, int *instructioncount)
 {
 	instruction *inst;
-	if (!encodenum(value, instructionptr, instructioncount))
+	if (!encodenum(n, instructionptr, instructioncount))
 		return 0;
 	inst = (instruction *) alloc(sizeof(*inst));
 	inst->value = (word *) (*instructionptr)->value;
@@ -30,6 +33,7 @@ int addnumtoinstructions(char *value, struct listnode **instructionptr, int *ins
 	return 1;
 }
 
+/* encodes the given operation and its parameters and appends it to the linked list */
 enum parsererrno encodeoperation(char *opname, enum symbol opcode, struct listnode **params, struct listnode **instructionptr, int *instructioncount)
 {
 	struct listnode *paramptr = *params;
