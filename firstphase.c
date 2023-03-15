@@ -148,7 +148,7 @@ FILE *firstphase(FILE *am, char *filename, struct listnode *instructions, struct
 			}
 		} else if (isoperation(opname)) {
 			if (labeldef) {
-				hashmap_setint(labels, labelname, instructioncount);
+				hashmap_setint(labels, labelname, 100 + instructioncount);
 				hashmap_addbittofield(labelattributes, labelname, LABEL_INSTRUCTION);
 			}
 			switch (encodeoperation(opname, opcode, &params, &instructionptr, &instructioncount)) {
@@ -177,7 +177,7 @@ FILE *firstphase(FILE *am, char *filename, struct listnode *instructions, struct
 		while (attributesptr != NULL) {
 			labelattribute = (int *) attributesptr->value;
 			if (labelattribute != NULL && *labelattribute & LABEL_DATA)
-				hashmap_setint(labels, attributesptr->key, *hashmap_getint(labels, attributesptr->key) + instructioncount);
+				hashmap_setint(labels, attributesptr->key, *hashmap_getint(labels, attributesptr->key) + 100 + instructioncount);
 			attributesptr = attributesptr->next;
 		}
 	}
