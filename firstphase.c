@@ -44,12 +44,12 @@ FILE *firstphase(FILE *am, char *filename, struct listnode *instructions, struct
 
 		if (line[i-1] == ':') {
 			labelname = strndupl(&line[i-count], count-1);
-			if (!isvalidlabel(labelname)) {
-				haserrors = 1;
-				printerr(filename, linecount, ERROR_LABELINVALIDNAME, labelname);
-			} else if (symbols_get(labelname) != UNKNOWN_SYMBOL) {
+			if (symbols_get(labelname) != UNKNOWN_SYMBOL) {
 				haserrors = 1;
 				printerr(filename, linecount, ERROR_LABELSYMBOL, labelname);
+			}else if (!isvalidlabel(labelname)) {
+				haserrors = 1;
+				printerr(filename, linecount, ERROR_LABELINVALIDNAME, labelname);
 			} else
 				labeldef = 1;
 			skipwhitespace(line, &i);
@@ -154,6 +154,10 @@ FILE *firstphase(FILE *am, char *filename, struct listnode *instructions, struct
 			switch (encodeoperation(opname, opcode, &params, &instructionptr, &instructioncount)) {
 			case PARSER_EINVALIDNUMBER:
 				printerr(filename, linecount, ERROR_DATAINVALIDNUMBER, (char *) params->value);
+				break;
+			case PARSER_EINVALIDLABEL:
+				printerr(filename, linecount, ERROR_LABELINVALIDNAME, (char *) params->value);
+				break;
 			default:
 				break;
 			}
