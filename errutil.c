@@ -34,6 +34,7 @@ void errutil_prepare(void)
 	msg[ERROR_LABELINVALIDNAME] = "label names can't be more than 30 characters long, and must start with a letter followed by letters or numbers (%s)";
 	msg[ERROR_LABELSYMBOL] = "label name must not be a pre-defined symbol (%s)";
 	msg[ERROR_LABELDEFINED] = "label is already defined (%s)";
+	msg[ERROR_LABELNOTDEFINED] = "label is not defined (%s)";
 	msg[WARNING_LABELEMPTY] = "label defined without instruction (%s)";
 	msg[WARNING_LABELUSELESS] = "useless label definition (%s)";
 
