@@ -7,6 +7,14 @@
 #include "strutil.h"
 #include "errutil.h"
 
+word *encodelabel(int val)
+{
+	word *w = (word *) alloc(sizeof(w));
+	w->field = ENC_RELOCATABLE;
+	w->field |= val << 2;
+	return w;
+}
+
 /* utility function for appending instructions to a linked list */
 void addinstructiontolist(void *value, int islabel, struct listnode **instructionptr, int *instructioncount)
 {
@@ -267,17 +275,15 @@ int countnonwhitespace(char line[], int *i)
 }
 
 /* duplicates the given string until the given character */
-char *dupluntil(char *s, char c)
+int countuntil(char *s, char c)
 {
 	int count;
 	for (count = 0; s[count] != c && !islineterminator(s[count]); count++)
 		;
-	return strndupl(s, count);
+	return count;
 }
-word *encodelabel(int val)
+
+char *dupluntil(char *s, char c)
 {
-	word *w = (word *) alloc(sizeof(w));
-	w->field = ENC_RELOCATABLE;
-	w->field |= val << 2;
-	return w;
+	return strndupl(s, countuntil(s, c));
 }
