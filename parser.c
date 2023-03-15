@@ -45,9 +45,12 @@ enum parsererrno encodeoperation(char *opname, enum symbol opcode, struct listno
 
 	/* opcode */
 	first->field |= (opcode) << 6;
-
+	
+	
 	/* address methods + parameters 1 & 2 */
-	if (isjumpoperation(opcode)) {
+	if (isjumpoperation(opcode)){
+		if(!isvalidlabel((char *)paramptr->value))
+			return PARSER_EINVALIDLABEL;
 		first->field |= (paramptr->next == NULL ? ADDRESS_DIRECT : ADDRESS_JUMP_WITH_PARAMS) << 2;
 		addinstructiontolist(strdupl((char *) paramptr->value), 1, instructionptr, instructioncount);
 		paramptr = paramptr->next;
@@ -71,6 +74,8 @@ enum parsererrno encodeoperation(char *opname, enum symbol opcode, struct listno
 			*params = paramptr;
 			return PARSER_EINVALIDNUMBER;
 		case ADDRESS_DIRECT:
+			if(!isvalidlabel((char *)paramptr->value))
+				return PARSER_EINVALIDLABEL;
 			addinstructiontolist(strdupl(paramptr->value), 1, instructionptr, instructioncount);
 			break;
 		case ADDRESS_DIRECT_REGISTER:
@@ -222,7 +227,7 @@ int isvalidnum(char *s)
 int isvalidlabel(char *s)
 {
 	int count;
-	if (!isalpha(*s))
+	if (!isalpha(*s) || symbols_get(s)!=UNKNOWN_SYMBOL)
 		return 0;
 	for (count = 0, s++; *s != '\0' && *s != EOF && count <= 30; s++, count++)
 		if (!isalnum(*s))
@@ -268,4 +273,11 @@ char *dupluntil(char *s, char c)
 	for (count = 0; s[count] != c && !islineterminator(s[count]); count++)
 		;
 	return strndupl(s, count);
+}
+word *encodelabel(int val)
+{
+	word *w = (word *) alloc(sizeof(w));
+	w->field = ENC_RELOCATABLE;
+	w->field |= val << 2;
+	return w;
 }
