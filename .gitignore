@@ -2,5 +2,11 @@
 assembler
 *.o
 
+# Built files
+*.am
+*.ob
+*.ext
+*.ent
+
 # VSCode folder
 .vscode/

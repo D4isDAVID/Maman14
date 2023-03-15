@@ -55,6 +55,7 @@ int main(int argc, char **argv)
 
 		if (ob == NULL || secondphase(ob,filename,instructions,data,labels,labelattributes))
 			deleteoutputfiles(filename);
+		
 		linkedlist_free(instructions);
 		linkedlist_free(data);
 		hashmap_free(labels);
