@@ -16,7 +16,8 @@ enum parsererrno {
 	PARSER_EUNFINISHEDSTRING,
 	PARSER_EINVALIDCHAR,
 	PARSER_EJUMPPARAMS,
-	PARSER_EINVALIDNUMBER
+	PARSER_EINVALIDNUMBER,
+	PARSER_EINVALIDLABEL
 };
 
 typedef struct word {
@@ -30,6 +31,7 @@ typedef struct instruction {
 
 enum parsererrno encodeoperation(char *, enum symbol, struct listnode **, struct listnode **, int *);
 int encodenum(char *, struct listnode **, int *);
+word *encodelabel(int val);
 enum parsererrno encodestring(char *, struct listnode **, int *);
 enum parsererrno parseparams(char *, int *, int, struct listnode **);
 enum addressmethod determineaddressmethod(char *s);
