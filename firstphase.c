@@ -40,10 +40,11 @@ FILE *firstphase(FILE *am, char *filename, struct listnode *instructions, struct
 		params = NULL;
 
 		skipwhitespace(line, &i);
-		count = countnonwhitespace(line, &i);
+		count = countuntil(line, ':');
 
-		if (line[i-1] == ':') {
-			labelname = strndupl(&line[i-count], count-1);
+		if (line[count] == ':') {
+			i = count+1;
+			labelname = strndupl(line, count);
 			if (symbols_get(labelname) != UNKNOWN_SYMBOL) {
 				haserrors = 1;
 				printerr(filename, linecount, ERROR_LABELSYMBOL, labelname);
@@ -56,7 +57,8 @@ FILE *firstphase(FILE *am, char *filename, struct listnode *instructions, struct
 			count = countnonwhitespace(line, &i);
 			if (count == 0)
 				printwarn(filename, linecount, WARNING_LABELEMPTY, labelname);
-		}
+		} else
+			count = countnonwhitespace(line, &i);
 
 		if (count == 0)
 			continue;

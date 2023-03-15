@@ -29,9 +29,9 @@ typedef struct instruction {
 	int islabel;
 } instruction;
 
+word *encodelabel(int);
 enum parsererrno encodeoperation(char *, enum symbol, struct listnode **, struct listnode **, int *);
 int encodenum(char *, struct listnode **, int *);
-word *encodelabel(int val);
 enum parsererrno encodestring(char *, struct listnode **, int *);
 enum parsererrno parseparams(char *, int *, int, struct listnode **);
 enum addressmethod determineaddressmethod(char *s);
@@ -39,6 +39,7 @@ int isvalidnum(char *);
 int isvalidlabel(char *);
 int skipwhitespace(char [], int *);
 int countnonwhitespace(char [], int *);
+int countuntil(char *, char);
 char *dupluntil(char *, char);
 
 #endif
