@@ -1,11 +1,13 @@
 CCX := gcc -Wall -ansi -pedantic
 
-assembler: assembler.c preassembler.o firstphase.o parser.o hashmap.o linkedlist.o symbols.o strutil.o errutil.o
-	$(CCX) assembler.c preassembler.o firstphase.o parser.o hashmap.o linkedlist.o symbols.o strutil.o errutil.o -o assembler
+assembler: assembler.c preassembler.o firstphase.o secondphase.o parser.o hashmap.o linkedlist.o symbols.o strutil.o errutil.o
+	$(CCX) assembler.c preassembler.o firstphase.o secondphase.o parser.o hashmap.o linkedlist.o symbols.o strutil.o errutil.o -o assembler
 preassembler.o: preassembler.c preassembler.h
 	$(CCX) -c preassembler.c -o preassembler.o
 firstphase.o: firstphase.c firstphase.h
 	$(CCX) -c firstphase.c -o firstphase.o
+secondphase.o: secondphase.c secondphase.h
+	$(CCX) -c secondphase.c -o secondphase.o
 parser.o: parser.c parser.h
 	$(CCX) -c parser.c -o parser.o
 hashmap.o: hashmap.c hashmap.h
