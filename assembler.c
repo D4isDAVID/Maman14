@@ -9,6 +9,7 @@
 #include "hashmap.h"
 #include "linkedlist.h"
 #include "errutil.h"
+#include "secondphase.h"
 
 void deleteoutputfiles(char *);
 
@@ -52,9 +53,8 @@ int main(int argc, char **argv)
 		instructions = instructions->next; /* skip garbage value */
 		data = data->next;
 
-		if (ob == NULL)
+		if (ob == NULL || secondphase(ob,filename,instructions,data,labels,labelattributes))
 			deleteoutputfiles(filename);
-
 		linkedlist_free(instructions);
 		linkedlist_free(data);
 		hashmap_free(labels);
