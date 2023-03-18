@@ -91,6 +91,7 @@ char *macrocontentalloc(FILE *as)
 		lines = 0, /* amount of lines before nearest `endmcr` */
 		count = 0; /* results from `skipwhitespace` and `countnonwhitespace` */
 	fpos_t p; /* save current position to return to after counting lines */
+	char *ptr;
 	fgetpos(as, &p);
 	while (fgets(line, MAX_LINE_LENGTH + 2, as) != NULL) {
 		i = 0;
@@ -101,7 +102,9 @@ char *macrocontentalloc(FILE *as)
 		lines++;
 	}
 	fsetpos(as, &p);
-	return (char *) alloc(sizeof(char) * ((MAX_LINE_LENGTH + 1) * lines) + 1);
+	ptr = (char *) alloc(sizeof(char) * ((MAX_LINE_LENGTH + 1) * lines) + 1);
+	*ptr = '\0';
+	return ptr;
 }
 
 int isvalidmcr(char *line, int *i, int *count, char **macroname)

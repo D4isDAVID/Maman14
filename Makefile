@@ -1,6 +1,7 @@
 CCX := gcc -Wall -ansi -pedantic
 SRC := $(wildcard *.c)
 BIN := $(SRC:%.c=%.o)
+TEST := $(wildcard tests/*.as)
 
 all: assembler
 
@@ -9,8 +10,8 @@ assembler: $(BIN)
 %.o: %.c
 	$(CCX) -c $< -o $@
 
-test: assembler tests/booktest.as tests/empty.as tests/overflow.as
-	./assembler tests/booktest tests/empty tests/overflow
+test: assembler $(TEST)
+	./assembler $(TEST:%.as=%)
 
 clean:
 	rm -f *.o assembler **/*.am **/*.ob **/*.ent **/*.ext

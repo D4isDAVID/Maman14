@@ -52,6 +52,8 @@ void errutil_prepare(void)
 	msg[ERROR_PARAMSTOOMANY] = "too many parameters (expected %d)";
 	msg[ERROR_PARAMSJUMP] = "jump operations must receive a label followed by either 2 parameters inside parentheses, or no parameters at all";
 
+	msg[ERROR_OPINVALIDSOURCE] = "invalid source parameter for %s";
+	msg[ERROR_OPINVALIDDEST] = "invalid destination parameter for %s";
 	msg[ERROR_DATAINVALIDNUMBER] = "invalid number (%s)";
 
 	msg[ERROR_STRINGSTARTQUOTES] = "string declarations must start with quotes (\")";

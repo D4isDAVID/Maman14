@@ -18,6 +18,7 @@ FILE *firstphase(FILE *am, char *filename, struct listnode *instructions, struct
 		linecount = 0, /* count of lines */
 		datacount = 0, /* count of data instructions */
 		instructioncount = 0, /* count of all instructions */
+		toolong = 0, /* whether the current line is too long */
 		haserrors = 0; /* whether an error has been detected somewhere in the file */
 	enum symbol opcode; /* operation code in current line */
 	struct listnode *params,
@@ -28,16 +29,18 @@ FILE *firstphase(FILE *am, char *filename, struct listnode *instructions, struct
 
 	while (fgets(line, MAX_LINE_LENGTH + 2, am) != NULL) {
 		linecount++;
+		toolong = 0;
 
 		while (strchr(line, '\n') == NULL) {
-			if (!haserrors) {
+			if (!toolong) {
 				printerr(filename, linecount, ERROR_LINEOVERFLOW);
+				toolong = 1;
 				haserrors = 1;
 			}
 			if (fgets(line, MAX_LINE_LENGTH + 2, am) == NULL)
 				break;
 		}
-		if (haserrors)
+		if (toolong)
 			continue;
 
 		i = 0;
@@ -165,6 +168,12 @@ FILE *firstphase(FILE *am, char *filename, struct listnode *instructions, struct
 				break;
 			case PARSER_EINVALIDLABEL:
 				printerr(filename, linecount, ERROR_LABELINVALIDNAME, (char *) params->value);
+				break;
+			case PARSER_EINVALIDSOURCEPARAM:
+				printerr(filename, linecount, ERROR_OPINVALIDSOURCE, opname);
+				break;
+			case PARSER_EINVALIDDESTPARAM:
+				printerr(filename, linecount, ERROR_OPINVALIDDEST, opname);
 				break;
 			default:
 				break;

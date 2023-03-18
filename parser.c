@@ -99,6 +99,28 @@ enum parsererrno encodeoperation(char *opname, enum symbol opcode, struct listno
 		addinstructiontolist(registers, 0, instructionptr, instructioncount);
 	first->field |= methods << (isjumpoperation(opcode) ? 10 : 2);
 
+	switch (opcode) {
+	case OPCODE_LEA:
+		if (((first->field & (1 << 5)) >> 5) ^ ((first->field & (1 << 4)) >> 4))
+			return PARSER_EINVALIDSOURCEPARAM;
+	case OPCODE_MOV:
+	case OPCODE_ADD:
+	case OPCODE_SUB:
+	case OPCODE_NOT:
+	case OPCODE_CLR:
+	case OPCODE_INC:
+	case OPCODE_DEC:
+	case OPCODE_JMP:
+	case OPCODE_BNE:
+	case OPCODE_RED:
+	case OPCODE_JSR:
+		if (!(first->field & ((1 << 3) | (1 << 2))))
+			return PARSER_EINVALIDDESTPARAM;
+		break;
+	default:
+		break;
+	}
+
 	return PARSER_OK;
 }
 
@@ -223,9 +245,9 @@ int isvalidnum(char *s)
 int isvalidlabel(char *s)
 {
 	int count;
-	if (!isalpha(*s) || symbols_get(s)!=UNKNOWN_SYMBOL)
+	if (!isalpha(*s) || symbols_get(s) != UNKNOWN_SYMBOL)
 		return 0;
-	for (count = 0, s++; *s != '\0' && *s != EOF && count <= 30; s++, count++)
+	for (count = 1, s++; *s != '\0' && *s != EOF; s++, count++)
 		if (!isalnum(*s))
 			return 0;
 	return count <= 30;

@@ -35,7 +35,7 @@ int secondphase(FILE *ob, char *filename, struct listnode *instructions, struct 
 		if (!isdata) {
 			labelname = NULL;
 			inst = listptr->value;
-			if(inst->islabel){
+			if (inst->islabel) {
 				labelname = (char *) inst->value;
 				labelattribute = hashmap_getint(labelattributes, labelname);
 				labelvalue = hashmap_getint(labels, labelname);
@@ -43,25 +43,25 @@ int secondphase(FILE *ob, char *filename, struct listnode *instructions, struct 
 					haserrors = 1;
 					printerr(filename, linecount, ERROR_LABELNOTDEFINED, labelname);
 				}
-				if(*labelattribute & LABEL_EXTERNAL){
+				if (*labelattribute & LABEL_EXTERNAL){
 					encode(ENC_EXTERNAL, ob);
-					hasext=1;
+					hasext = 1;
 					fprintf(ext,"%s\t%d\n", labelname, linecount);
 				}
 				else
 					encode(encodelabel(*labelvalue)->field, ob);
-			}else
+			} else
 				encode(((word *)inst->value)->field, ob);
-			if(!listptr->next){
-				isdata=1;
+			if (!listptr->next) {
+				isdata = 1;
 				listptr = linkedlist_newnode("");
-				listptr->next=data;
+				listptr->next = data;
 			}
-		}else
+		} else
 			encode(((word *)listptr->value)->field, ob);
 		fputc('\n', ob);
 		linecount++;
-		listptr=listptr->next;
+		listptr = listptr->next;
 	}
 
 	for (i = 0; i < HASHMAP_CAPACITY; i++) {
@@ -71,7 +71,7 @@ int secondphase(FILE *ob, char *filename, struct listnode *instructions, struct 
 			if (labelattribute != NULL && *labelattribute & LABEL_ENTRY){
 				if(*labelattribute & (LABEL_DATA | LABEL_INSTRUCTION)){
 					hasent=1;
-					fprintf(ent,"%s\t%d\n", attributesptr->key, *hashmap_getint(labels,attributesptr->key));
+					fprintf(ent,"%s\t%d\n", attributesptr->key, *hashmap_getint(labels, attributesptr->key));
 				}else{
 					haserrors = 1;
 					printerr(filename, linecount, ERROR_LABELNOTDEFINED, attributesptr->key);
