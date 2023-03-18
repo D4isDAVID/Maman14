@@ -1,7 +1,5 @@
-/* hashmap implementation, adapted from the K&R book */
 #include "hashmap.h"
 
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include "errutil.h"
@@ -15,15 +13,16 @@ unsigned int hash(char *key)
 	return hashval % HASHMAP_CAPACITY;
 }
 
-/* creates a new empty hashmap */
 struct hashmap *hashmap_new(void)
 {
+	int i;
 	struct hashmap *m = (struct hashmap *) alloc(sizeof(*m));
 	m->size = 0;
+	for (i = 0; i < HASHMAP_CAPACITY; i++)
+		m->tab[i] = NULL;
 	return m;
 }
 
-/* frees the entire hashmap */
 void hashmap_free(struct hashmap *m)
 {
 	struct hashnode *n, *tmp;
@@ -39,6 +38,7 @@ void hashmap_free(struct hashmap *m)
 			free(n);
 			n = tmp;
 		}
+		m->tab[i] = NULL;
 	}
 	free(m);
 }
@@ -48,22 +48,23 @@ struct hashnode *getnode(struct hashmap *m, char *key)
 	struct hashnode *n;
 	if (m == NULL)
 		return NULL;
-	for (n = m->tab[hash(key)]; n != NULL; n = n->next)
+	for (n = m->tab[hash(key)]; n != NULL; n = n->next) {
 		if (strcmp(n->key, key) == 0)
 			return n;
+	}
 	return NULL;
 }
 
 int *hashmap_getint(struct hashmap *m, char *key)
 {
 	struct hashnode *n;
-	return m == NULL || (n = getnode(m, key)) == NULL || n->type != HASHMAP_VAL_INT ? NULL : (int *) n->value;
+	return m == NULL || (n = getnode(m, key)) == NULL ? NULL : (int *) n->value;
 }
 
 char *hashmap_getstr(struct hashmap *m, char *key)
 {
 	struct hashnode *n;
-	return m == NULL || (n = getnode(m, key)) == NULL || n->type != HASHMAP_VAL_STR ? NULL : (char *) n->value;
+	return m == NULL || (n = getnode(m, key)) == NULL ? NULL : (char *) n->value;
 }
 
 /* prepares a new node and returns it to later have its value set */
@@ -93,7 +94,6 @@ void *hashmap_setint(struct hashmap *m, char *key, int value)
 		return NULL;
 	n->value = alloc(sizeof(value));
 	*((int *) n->value) = value;
-	n->type = HASHMAP_VAL_INT;
 	return n->value;
 }
 
@@ -104,11 +104,9 @@ void *hashmap_setstr(struct hashmap *m, char *key, char *value)
 		return NULL;
 	n->value = alloc(sizeof(char) * strlen(value));
 	strcpy(n->value, value);
-	n->type = HASHMAP_VAL_STR;
 	return n->value;
 }
 
-/* utility function for bitfields */
 void hashmap_addbittofield(struct hashmap *m, char *key, int value)
 {
 	int *n;

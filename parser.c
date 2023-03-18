@@ -1,4 +1,3 @@
-/* utility parsing functions */
 #include "parser.h"
 
 #include <stdio.h>
@@ -41,7 +40,6 @@ int addnumtoinstructions(char *n, struct listnode **instructionptr, int *instruc
 	return 1;
 }
 
-/* encodes the given operation and its parameters and appends it to the linked list */
 enum parsererrno encodeoperation(char *opname, enum symbol opcode, struct listnode **params, struct listnode **instructionptr, int *instructioncount)
 {
 	struct listnode *paramptr = *params;
@@ -53,8 +51,7 @@ enum parsererrno encodeoperation(char *opname, enum symbol opcode, struct listno
 
 	/* opcode */
 	first->field |= (opcode) << 6;
-	
-	
+
 	/* address methods + parameters 1 & 2 */
 	if (isjumpoperation(opcode)){
 		if(!isvalidlabel((char *)paramptr->value))
@@ -105,8 +102,6 @@ enum parsererrno encodeoperation(char *opname, enum symbol opcode, struct listno
 	return PARSER_OK;
 }
 
-/* encodes the given string as a number and appends it to the linked list.
-	returns whether the function was given a valid number or not */
 int encodenum(char *s, struct listnode **dataptr, int *datacount)
 {
 	int isnegative;
@@ -126,8 +121,6 @@ int encodenum(char *s, struct listnode **dataptr, int *datacount)
 	return 1;
 }
 
-/* encodes the given string as an array of characters and appends it to the linked list.
-	returns a parser error number */
 enum parsererrno encodestring(char *s, struct listnode **dataptr, int *datacount)
 {
 	struct listnode *tmp;
@@ -154,8 +147,6 @@ enum parsererrno encodestring(char *s, struct listnode **dataptr, int *datacount
 	return PARSER_OK;
 }
 
-/* parses parameters in the given string from `i` and appends them to the given linked list.
-	returns a parser error number */
 enum parsererrno parseparams(char *line, int *i, int paramamount, struct listnode **head)
 {
 	int count, ii;
@@ -210,7 +201,6 @@ enum parsererrno parseparams(char *line, int *i, int paramamount, struct listnod
 	return PARSER_OK;
 }
 
-/* returns the address method of the given string */
 enum addressmethod determineaddressmethod(char *s)
 {
 	if (s[0] == '#')
@@ -220,7 +210,6 @@ enum addressmethod determineaddressmethod(char *s)
 	return ADDRESS_DIRECT;
 }
 
-/* returns whether the given string is a valid number (operator `+`/`-` followed by digits `0-9`) */
 int isvalidnum(char *s)
 {
 	if (*s != '-' && *s != '+' && !isdigit(*s))
@@ -231,7 +220,6 @@ int isvalidnum(char *s)
 	return 1;
 }
 
-/* returns whether the given string is a valid label (30 characters long and starts with a letter followed by letters or digits) */
 int isvalidlabel(char *s)
 {
 	int count;
@@ -255,7 +243,6 @@ int islineterminator(char c)
 	return c == '\n' || c == '\0' || c == EOF;
 }
 
-/* skips over spaces and tabs in the given line at the given position, and returns their amount */
 int skipwhitespace(char line[], int *i)
 {
 	int count = 0;
@@ -264,8 +251,6 @@ int skipwhitespace(char line[], int *i)
 	return count;
 }
 
-/* skips over non-space, non-tab, and non-newline characters in the given line at the given position,
-	and returns their amount */
 int countnonwhitespace(char line[], int *i)
 {
 	int count = 0;
@@ -274,7 +259,6 @@ int countnonwhitespace(char line[], int *i)
 	return count;
 }
 
-/* duplicates the given string until the given character */
 int countuntil(char *s, char c)
 {
 	int count;

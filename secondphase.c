@@ -1,15 +1,12 @@
 #include "secondphase.h"
+
 #include <string.h>
 #include "parser.h"
 #include "strutil.h"
 #include "errutil.h"
 
-void convert(unsigned int num, FILE *ob)
-{
-	int i;
-	for (i = 1 << 13; i > 0; i /= 2)
-		fputc((num & i) ? '/' : '.', ob);
-}
+/* receives an int and prints its bits into the given file (0s and 1s represented with `.` and `/` respectively) */
+void encode(unsigned int num, FILE *ob);
 
 int secondphase(FILE *ob, char *filename, struct listnode *instructions, struct listnode *data, struct hashmap *labels, struct hashmap *labelattributes)
 {
@@ -47,21 +44,21 @@ int secondphase(FILE *ob, char *filename, struct listnode *instructions, struct 
 					printerr(filename, linecount, ERROR_LABELNOTDEFINED, labelname);
 				}
 				if(*labelattribute & LABEL_EXTERNAL){
-					convert(ENC_EXTERNAL, ob);
+					encode(ENC_EXTERNAL, ob);
 					hasext=1;
 					fprintf(ext,"%s\t%d\n", labelname, linecount);
 				}
 				else
-					convert(encodelabel(*labelvalue)->field, ob);
+					encode(encodelabel(*labelvalue)->field, ob);
 			}else
-				convert(((word *)inst->value)->field, ob);
+				encode(((word *)inst->value)->field, ob);
 			if(!listptr->next){
 				isdata=1;
 				listptr = linkedlist_newnode("");
 				listptr->next=data;
 			}
 		}else
-			convert(((word *)listptr->value)->field, ob);
+			encode(((word *)listptr->value)->field, ob);
 		fputc('\n', ob);
 		linecount++;
 		listptr=listptr->next;
@@ -84,9 +81,9 @@ int secondphase(FILE *ob, char *filename, struct listnode *instructions, struct 
 		}
 	}
 
-	fclose(ob);
-	fclose(ent);
-	fclose(ext);
+	close(ob);
+	close(ent);
+	close(ext);
 
 	if (!hasent) {
 		strcat(filename, ".ent");
@@ -100,4 +97,11 @@ int secondphase(FILE *ob, char *filename, struct listnode *instructions, struct 
 	}
 
 	return haserrors;
+}
+
+void encode(unsigned int num, FILE *ob)
+{
+	int i;
+	for (i = 1 << 13; i > 0; i /= 2)
+		fputc((num & i) ? '/' : '.', ob);
 }
