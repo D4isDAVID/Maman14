@@ -1,15 +1,13 @@
-/* error message utilities for the first & second phases */
 #include "errutil.h"
 
 #include <stdlib.h>
 #include <stdarg.h>
-#include "hashmap.h"
 
 void *alloc(size_t s)
 {
 	void *ptr = malloc(s);
 	if (ptr == NULL) {
-		printf("error: failed to allocate memory");
+		printf("error: failed to allocate memory\n");
 		exit(1);
 	}
 	return ptr;
@@ -19,10 +17,20 @@ FILE *open(char *filename, char *mode)
 {
 	FILE *f = fopen(filename, mode);
 	if (f == NULL) {
-		printf("error: failed to open file (%s)", filename);
+		printf("error: failed to open file (%s)\n", filename);
 		exit(1);
 	}
 	return f;
+}
+
+int close(FILE *file)
+{
+	int i = fclose(file);
+	if (i == EOF) {
+		printf("error: failed to close file\n");
+		exit(1);
+	}
+	return i;
 }
 
 char **msg;
@@ -50,7 +58,7 @@ void errutil_prepare(void)
 	msg[ERROR_STRINGUNFINISHED] = "unfinished string (strings must end with quotes \")";
 	msg[ERROR_STRINGASCII] = "strings must only contain printable ascii characters";
 
-	msg[ERROR_SOURCEEMPTY] = "empty source file";
+	msg[ERROR_LINEOVERFLOW] = "line exceeds max length of 80";
 	msg[ERROR_BINARYOVERFLOW] = "binary file exceeds max memory of 256";
 
 	msg[ERROR_UNKNOWNINSTRUCTION] = "unknown instruction (%s)";
@@ -61,12 +69,7 @@ void errutil_free(void)
 	free(msg);
 }
 
-void prettyprint(char *prefix, char *filename, int line, char *s, va_list args)
-{
-	printf("%s: %s.am:%d - ", prefix, filename, line);
-	vprintf(s, args);
-	printf("\n");
-}
+void prettyprint(char *, char *, int, char *, va_list);
 
 void printwarn(char *filename, int line, enum errutil_errno e, ...)
 {
@@ -84,4 +87,11 @@ void printerr(char *filename, int line, enum errutil_errno e, ...)
 	va_start(args, e);
 	prettyprint("error", filename, line, s, args);
 	va_end(args);
+}
+
+void prettyprint(char *prefix, char *filename, int line, char *s, va_list args)
+{
+	printf("%s: %s.am:%d - ", prefix, filename, line);
+	vprintf(s, args);
+	printf("\n");
 }

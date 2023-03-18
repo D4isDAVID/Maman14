@@ -1,4 +1,3 @@
-/* symbols registry */
 #include "symbols.h"
 
 #include <stdlib.h>
@@ -36,14 +35,14 @@ void symbols_prepare(void)
 	hashmap_setint(directives, ".extern", DIRECTIVE_EXTERN);
 
 	registers = hashmap_new();
-	hashmap_setint(registers, "r0", REGISTER_ZERO);
-	hashmap_setint(registers, "r1", REGISTER_ONE);
-	hashmap_setint(registers, "r2", REGISTER_TWO);
-	hashmap_setint(registers, "r3", REGISTER_THREE);
-	hashmap_setint(registers, "r4", REGISTER_FOUR);
-	hashmap_setint(registers, "r5", REGISTER_FIVE);
-	hashmap_setint(registers, "r6", REGISTER_SIX);
-	hashmap_setint(registers, "r7", REGISTER_SEVEN);
+	hashmap_setint(registers, "r0", REGISTER);
+	hashmap_setint(registers, "r1", REGISTER);
+	hashmap_setint(registers, "r2", REGISTER);
+	hashmap_setint(registers, "r3", REGISTER);
+	hashmap_setint(registers, "r4", REGISTER);
+	hashmap_setint(registers, "r5", REGISTER);
+	hashmap_setint(registers, "r6", REGISTER);
+	hashmap_setint(registers, "r7", REGISTER);
 
 	paramamountsize = operations->size + directives->size;
 	paramamounts = (enum paramamount *) alloc(sizeof(*paramamounts) * paramamountsize);
@@ -77,7 +76,6 @@ void symbols_free(void)
 	free(paramamounts);
 }
 
-/* returns an enum value of the given symbol, or `UNKNOWN_SYMBOL` for non-existent ones */
 enum symbol symbols_get(char *op)
 {
 	int *code = hashmap_getint(operations, op);
@@ -88,7 +86,6 @@ enum symbol symbols_get(char *op)
 	return code == NULL ? UNKNOWN_SYMBOL : *code;
 }
 
-/* returns the parameter amount of the given operation */
 enum paramamount symbols_getparamamount(enum symbol op)
 {
 	if (op < 0 || op >= paramamountsize)
@@ -96,31 +93,26 @@ enum paramamount symbols_getparamamount(enum symbol op)
 	return paramamounts[op];
 }
 
-/* returns whether the given string represents an operation */
 int isoperation(char *s)
 {
 	return hashmap_getint(operations, s) != NULL;
 }
 
-/* returns whether the given string represents a directive */
 int isdirective(char *s)
 {
 	return hashmap_getint(directives, s) != NULL;
 }
 
-/* returns whether the given string represents a register */
 int isregister(char *s)
 {
 	return hashmap_getint(registers, s) != NULL;
 }
 
-/* returns whether the given opcode is of a jumping operation */
 int isjumpoperation(enum symbol o)
 {
 	return o == OPCODE_JMP || o == OPCODE_BNE || o == OPCODE_JSR;
 }
 
-/* returns whether the given directive is a data directive */
 int isdatadirective(enum symbol o)
 {
 	return o == DIRECTIVE_DATA || o == DIRECTIVE_STRING;

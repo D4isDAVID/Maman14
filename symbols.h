@@ -1,3 +1,4 @@
+/* symbols registry */
 #ifndef SYMBOLS_H
 #define SYMBOLS_H
 
@@ -26,14 +27,7 @@ enum symbol {
 	DIRECTIVE_ENTRY,
 	DIRECTIVE_EXTERN,
 
-	REGISTER_ZERO,
-	REGISTER_ONE,
-	REGISTER_TWO,
-	REGISTER_THREE,
-	REGISTER_FOUR,
-	REGISTER_FIVE,
-	REGISTER_SIX,
-	REGISTER_SEVEN
+	REGISTER
 };
 
 enum encoding {
@@ -69,12 +63,19 @@ enum labelattribute {
 void symbols_prepare(void);
 void symbols_free(void);
 
+/* returns an enum value of the given symbol, or `UNKNOWN_SYMBOL` for non-existent ones */
 enum symbol symbols_get(char *);
+/* returns the parameter amount of the given operation */
 enum paramamount symbols_getparamamount(enum symbol);
+/* returns whether the given string represents an operation */
 int isoperation(char *);
+/* returns whether the given string represents a directive */
 int isdirective(char *);
+/* returns whether the given string represents a register */
 int isregister(char *);
+/* returns whether the given opcode is of a jumping operation */
 int isjumpoperation(enum symbol);
+/* returns whether the given directive is a data directive */
 int isdatadirective(enum symbol);
 
 #endif

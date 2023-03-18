@@ -1,4 +1,3 @@
-/* first assembler phase: garners any information it can about the code (instructions, data, labels) and passes it all to the second phase */
 #include "firstphase.h"
 
 #include <string.h>
@@ -6,7 +5,6 @@
 #include "strutil.h"
 #include "errutil.h"
 
-/* phase entry point */
 FILE *firstphase(FILE *am, char *filename, struct listnode *instructions, struct listnode *data, struct hashmap *labels, struct hashmap *labelattributes)
 {
 	char line[MAX_LINE_LENGTH + 2], /* current line */
@@ -28,23 +26,30 @@ FILE *firstphase(FILE *am, char *filename, struct listnode *instructions, struct
 	struct hashnode *attributesptr;
 	FILE *ob;
 
-	strcat(filename, ".ob");
-	ob = open(filename, "w");
-	replaceextension(filename, ""); /* we need the filename without .ob extension to print in error messages */
-
 	while (fgets(line, MAX_LINE_LENGTH + 2, am) != NULL) {
 		linecount++;
+
+		while (strchr(line, '\n') == NULL) {
+			if (!haserrors) {
+				printerr(filename, linecount, ERROR_LINEOVERFLOW);
+				haserrors = 1;
+			}
+			if (fgets(line, MAX_LINE_LENGTH + 2, am) == NULL)
+				break;
+		}
+		if (haserrors)
+			continue;
+
 		i = 0;
 		labeldef = 0;
 		labelname = NULL;
 		params = NULL;
 
 		skipwhitespace(line, &i);
-		count = countuntil(line, ':');
+		count = countuntil(&line[i], ':');
 
-		if (line[count] == ':') {
-			i = count+1;
-			labelname = strndupl(line, count);
+		if (line[i+count] == ':') {
+			labelname = strndupl(&line[i], count);
 			if (symbols_get(labelname) != UNKNOWN_SYMBOL) {
 				haserrors = 1;
 				printerr(filename, linecount, ERROR_LABELSYMBOL, labelname);
@@ -53,6 +58,7 @@ FILE *firstphase(FILE *am, char *filename, struct listnode *instructions, struct
 				printerr(filename, linecount, ERROR_LABELINVALIDNAME, labelname);
 			} else
 				labeldef = 1;
+			i += count+1;
 			skipwhitespace(line, &i);
 			count = countnonwhitespace(line, &i);
 			if (count == 0)
@@ -72,23 +78,23 @@ FILE *firstphase(FILE *am, char *filename, struct listnode *instructions, struct
 		case PARSER_EUNEXPECTEDSPACE:
 			haserrors = 1;
 			printerr(filename, linecount, ERROR_PARAMSUNEXPECTEDSPACE);
-			break;
+			continue;
 		case PARSER_EUNEXPECTEDCOMMA:
 			haserrors = 1;
 			printerr(filename, linecount, ERROR_PARAMSUNEXPECTEDCOMMA);
-			break;
+			continue;
 		case PARSER_ENOTENOUGHPARAMS:
 			haserrors = 1;
 			printerr(filename, linecount, paramamount == PARAM_JUMP ? ERROR_PARAMSJUMP : ERROR_PARAMSNOTENOUGH, paramamount);
-			break;
+			continue;
 		case PARSER_ETOOMANYPARAMS:
 			haserrors = 1;
 			printerr(filename, linecount, paramamount == PARAM_JUMP ? ERROR_PARAMSJUMP : ERROR_PARAMSTOOMANY, paramamount);
-			break;
+			continue;
 		case PARSER_EJUMPPARAMS:
 			haserrors = 1;
 			printerr(filename, linecount, ERROR_PARAMSJUMP);
-			break;
+			continue;
 		default:
 			break;
 		}
@@ -175,26 +181,25 @@ FILE *firstphase(FILE *am, char *filename, struct listnode *instructions, struct
 	}
 
 	for (i = 0; i < HASHMAP_CAPACITY; i++) {
-		attributesptr = (labelattributes)->tab[i];
-		while (attributesptr != NULL) {
+		for (attributesptr = labelattributes->tab[i]; attributesptr != NULL; attributesptr = attributesptr->next) {
 			labelattribute = (int *) attributesptr->value;
 			if (labelattribute != NULL && *labelattribute & LABEL_DATA)
 				hashmap_setint(labels, attributesptr->key, *hashmap_getint(labels, attributesptr->key) + 100 + instructioncount);
-			attributesptr = attributesptr->next;
 		}
 	}
 
-	if (instructioncount == 0 && datacount == 0) {
-		haserrors = 1;
-		printerr(filename, linecount, ERROR_SOURCEEMPTY);
-	} else if (instructioncount + datacount > 256-100) {
+	if (instructioncount + datacount > 256-100) {
 		haserrors = 1;
 		printerr(filename, linecount, ERROR_BINARYOVERFLOW);
 	}
 
+	strcat(filename, ".ob");
+	ob = open(filename, "w");
+	replaceextension(filename, "");
+
 	fprintf(ob, "%d %d\n", instructioncount, datacount);
 	if (haserrors) {
-		fclose(ob);
+		close(ob);
 		ob = NULL;
 	}
 	return ob;

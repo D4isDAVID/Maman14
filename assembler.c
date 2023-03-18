@@ -2,79 +2,66 @@
 
 #include <stdio.h>
 #include <string.h>
+#include "symbols.h"
 #include "preassembler.h"
-#include "parser.h"
 #include "firstphase.h"
-#include "strutil.h"
+#include "secondphase.h"
 #include "hashmap.h"
 #include "linkedlist.h"
+#include "strutil.h"
 #include "errutil.h"
-#include "secondphase.h"
-
-void deleteoutputfiles(char *);
 
 int main(int argc, char **argv)
 {
-	int i;
-	char *filename;
-	FILE *as, *am, *ob;
-	struct hashmap *labels, *labelattributes;
-	struct listnode *instructions, *data;
+	int i; /* for looping over arguments */
+	char *filename; /* current file name */
+	FILE *as, *am, *ob; /* .as, .am, and .ob files of the current file */
+	struct hashmap *labels, *labelattributes; /* labels and their attributes in the current file */
+	struct listnode *instructions, *data; /* instructions and data of the current file */
 
 	if (argc == 1) {
-		fprintf(stderr, "Error: no files mentioned\n");
+		printf("error: no files mentioned\n");
 		return 1;
 	}
 
+	/* initial memory allocation for utilities that are used globally across all files */
 	symbols_prepare();
 	errutil_prepare();
-	labels = hashmap_new();
-	labelattributes = hashmap_new();
-	instructions = linkedlist_newnode(""); /* garbage 0 value to start the list */
-	data = linkedlist_newnode("");
 
 	for (i = 1; i < argc; i++) {
 		filename = alloc(sizeof(char) * (strlen(argv[i]) + 5)); /* enough space for filename + extension + null terminator */
 		strcpy(filename, argv[i]);
 		strcat(filename, ".as");
 		as = open(filename, "r");
-		if (as == NULL) {
-			fprintf(stderr, "Error in opening %s\n", filename);
-			return 1;
-		}
 
-		replaceextension(filename, "");
+		replaceextension(filename, ""); /* we don't need the .as extension anymore */
 		am = preassembler(as, filename);
-		fclose(as);
+		close(as);
+
+		labels = hashmap_new();
+		labelattributes = hashmap_new();
+		instructions = linkedlist_newnode(NULL); /* garbage value to start the list */
+		data = linkedlist_newnode(NULL);
 
 		ob = firstphase(am, filename, instructions, data, labels, labelattributes);
-		fclose(am);
+		close(am);
 	
-		instructions = instructions->next; /* skip garbage value */
-		data = data->next;
+		if (ob == NULL || secondphase(ob, filename, instructions->next, data->next, labels, labelattributes)) {
+			strcat(filename, ".ent");
+			remove(filename);
+			replaceextension(filename, ".ext");
+			remove(filename);
+			replaceextension(filename, ".ob");
+			remove(filename);
+		}
 
-		if (ob == NULL || secondphase(ob,filename,instructions,data,labels,labelattributes))
-			deleteoutputfiles(filename);
-		
-		linkedlist_free(instructions);
-		linkedlist_free(data);
 		hashmap_free(labels);
 		hashmap_free(labelattributes);
+		linkedlist_free(instructions);
+		linkedlist_free(data);
 	}
 
 	symbols_free();
 	errutil_free();
 	return 0;
-}
-
-void deleteoutputfiles(char *filename)
-{
-	strcat(filename, ".am");
-	remove(filename);
-	replaceextension(filename, ".ent");
-	remove(filename);
-	replaceextension(filename, ".ext");
-	remove(filename);
-	replaceextension(filename, ".ob");
-	remove(filename);
 }

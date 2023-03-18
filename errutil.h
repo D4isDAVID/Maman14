@@ -1,3 +1,7 @@
+/* error message utilities for the first & second phases */
+#ifndef ERRUTIL_H
+#define ERRUTIL_H
+
 #include <stdio.h>
 
 enum errutil_errno {
@@ -22,17 +26,23 @@ enum errutil_errno {
 
 	ERROR_UNKNOWNINSTRUCTION,
 
-	ERROR_SOURCEEMPTY,
+	ERROR_LINEOVERFLOW,
 	ERROR_BINARYOVERFLOW,
 
 	ERRORCOUNT /* amount of errutil_errno values for later use */
 };
 
+/* `malloc` wrapper that if failed, prints an error and exits the program */
 void *alloc(size_t);
-FILE *open(char *filename, char *mode);
+/* `fopen` wrapper that if failed, prints an error and exits the program */
+FILE *open(char *, char *);
+/* `fclose` wrapper that if failed, prints an error and exits the program */
+int close(FILE *);
 
 void errutil_prepare(void);
 void errutil_free(void);
 
 void printwarn(char *, int, enum errutil_errno, ...);
 void printerr(char *, int, enum errutil_errno, ...);
+
+#endif

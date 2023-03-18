@@ -1,22 +1,23 @@
-/* preassembler code: parses macros, removes empty lines and comment lines */
 #include "preassembler.h"
 
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "hashmap.h"
 #include "parser.h"
+#include "hashmap.h"
 #include "strutil.h"
 #include "errutil.h"
 
 #define MCR "mcr"
 #define ENDMCR "endmcr"
 
+/* returns whether the given line at the current location is a valid `mcr` statement
+	the value of `macroname` may be changed regardless of the result */
 int isvalidmcr(char *, int *, int *, char **);
+/* returns whether the given line at the current location is a valid `endmcr` statement */
 int isvalidendmcr(char *, int *, int *);
+/* counts amount of lines until nearest `endmcr` and allocates a string with enough memory for the macro content */
 char *macrocontentalloc(FILE *);
 
-/* preassembler entry point */
 FILE *preassembler(FILE *as, char *filename)
 {
 	char line[MAX_LINE_LENGTH + 2], /* current source code line including null terminator and possible newline */
@@ -77,13 +78,12 @@ FILE *preassembler(FILE *as, char *filename)
 				strcat(macrocontent, line);
 	}
 	hashmap_free(macros);
-	fclose(am);
+	close(am);
 	am = open(filename, "r");
 	replaceextension(filename, "");
 	return am;
 }
 
-/* counts amount of lines until nearest `endmcr` and allocates a string with enough memory for the macro content */
 char *macrocontentalloc(FILE *as)
 {
 	char line[MAX_LINE_LENGTH + 2]; /* current line in file */
@@ -104,8 +104,6 @@ char *macrocontentalloc(FILE *as)
 	return (char *) alloc(sizeof(char) * ((MAX_LINE_LENGTH + 1) * lines) + 1);
 }
 
-/* returns whether the given line at the current location is a valid `mcr` statement
-	the value of `macroname` may be changed regardless of the result */
 int isvalidmcr(char *line, int *i, int *count, char **macroname)
 {
 	if (*count != sizeof(MCR)-1 || strncmp(MCR, &line[(*i)-(*count)], *count) != 0)
@@ -119,7 +117,6 @@ int isvalidmcr(char *line, int *i, int *count, char **macroname)
 	return countnonwhitespace(line, i) == 0;
 }
 
-/* returns whether the given line at the current location is a valid `endmcr` statement */
 int isvalidendmcr(char *line, int *i, int *count)
 {
 	if (*count != sizeof(ENDMCR)-1 || strncmp(ENDMCR, &line[(*i)-(*count)], *count) != 0)

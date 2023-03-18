@@ -23,4 +23,4 @@ errutil.o: errutil.c errutil.h
 
 .PHONY: clean
 clean:
-	rm -f *.o assembler
+	rm -f *.o assembler **/*.am **/*.ob **/*.ent **/*.ext
