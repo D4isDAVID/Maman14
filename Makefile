@@ -16,4 +16,7 @@ test: assembler $(TESTS)
 	./assembler $(TESTS:%.as=%)
 
 clean:
-	rm -f *.o assembler **/*.am **/*.ob **/*.ent **/*.ext
+	rm -f *.o **/*.am **/*.ob **/*.ent **/*.ext assembler
+
+cleanbuild: all
+	rm -f *.o

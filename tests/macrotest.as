@@ -1,3 +1,5 @@
+; this file contains various operations with macros
+
 mcr empty
 endmcr
 empty
