@@ -8,20 +8,20 @@
 /* receives an int and prints its bits into the given file (0s and 1s represented with `.` and `/` respectively) */
 void encode(unsigned int num, FILE *ob);
 
-int secondphase(FILE *ob, char *filename, struct listnode *instructions, struct listnode *data, struct hashmap *labels, struct hashmap *labelattributes)
+int secondphase(FILE *am, FILE *ob, char *filename, struct listnode *instructions, struct listnode *data, struct hashmap *labels, struct hashmap *labelattributes)
 {
 	struct listnode *listptr = instructions;
-	struct hashnode *attributesptr;
 	int *labelattribute,
 		*labelvalue,
-		binarycount = 100,
+		binarycount = MEMORY_START,
 		linecount = 0,
 		haserrors = 0,
 		isdata = 0,
 		hasext = 0,
 		hasent = 0,
-		i;
-	char *labelname;
+		i,
+		count;
+	char *labelname, line[MAX_LINE_LENGTH + 2], *op;
 	FILE *ent, *ext;
 	instruction *inst;
 
@@ -31,18 +31,44 @@ int secondphase(FILE *ob, char *filename, struct listnode *instructions, struct 
 	ext = open(filename, "w");
 	replaceextension(filename, "");
 
+	while (fgets(line, MAX_LINE_LENGTH, am)) {
+		linecount++;
+		i = 0;
+
+		if ((op = strstr(line, ".entry")) == NULL)
+			continue;
+
+		countnonwhitespace(op, &i);
+		skipwhitespace(op, &i);
+
+		count = countnonwhitespace(op, &i);
+		labelname = strndupl(&op[i-count], count);
+
+		labelattribute = hashmap_getint(labelattributes, labelname);
+		if (labelattribute != NULL && *labelattribute & LABEL_ENTRY) {
+			if(*labelattribute & (LABEL_DATA | LABEL_INSTRUCTION)) {
+				hasent = 1;
+				fprintf(ent,"%s\t%d\n", labelname, *hashmap_getint(labels, labelname));
+			} else {
+				haserrors = 1;
+				printerr(filename, linecount, ERROR_LABELNOTDEFINED, labelname);
+			}
+		}
+	}
+
+	linecount = 0;
 	while (listptr != NULL) {
 		fprintf(ob, "0%d\t", binarycount);
 		if (!isdata) {
 			labelname = NULL;
 			inst = listptr->value;
-			if (inst->addline)
-				linecount++;
+			if (inst->line)
+				linecount = inst->line;
 			if (inst->islabel) {
 				labelname = (char *) inst->value;
 				labelattribute = hashmap_getint(labelattributes, labelname);
 				labelvalue = hashmap_getint(labels, labelname);
-				if (labelvalue == NULL && labelattribute != NULL && !(*labelattribute & LABEL_EXTERNAL)) {
+				if (labelvalue == NULL && (labelattribute == NULL || !(*labelattribute & LABEL_EXTERNAL))) {
 					haserrors = 1;
 					printerr(filename, linecount, ERROR_LABELNOTDEFINED, labelname);
 				}
@@ -68,23 +94,6 @@ int secondphase(FILE *ob, char *filename, struct listnode *instructions, struct 
 		listptr = listptr->next;
 	}
 
-	for (i = 0; i < HASHMAP_CAPACITY; i++) {
-		attributesptr = (labelattributes)->tab[i];
-		while (attributesptr != NULL) {
-			labelattribute = (int *) attributesptr->value;
-			if (labelattribute != NULL && *labelattribute & LABEL_ENTRY) {
-				if(*labelattribute & (LABEL_DATA | LABEL_INSTRUCTION)) {
-					hasent = 1;
-					fprintf(ent,"%s\t%d\n", attributesptr->key, *hashmap_getint(labels, attributesptr->key));
-				} else {
-					haserrors = 1;
-					printerr(filename, binarycount, ERROR_LABELNOTDEFINED, attributesptr->key);
-				}
-			}
-			attributesptr = attributesptr->next;
-		}
-	}
-
 	close(ob);
 	close(ent);
 	close(ext);
@@ -107,6 +116,6 @@ int secondphase(FILE *ob, char *filename, struct listnode *instructions, struct 
 void encode(unsigned int num, FILE *ob)
 {
 	int i;
-	for (i = 1 << 13; i > 0; i /= 2)
+	for (i = 1 << (WORD_LENGTH-1); i > 0; i /= 2)
 		fputc((num & i) ? '/' : '.', ob);
 }

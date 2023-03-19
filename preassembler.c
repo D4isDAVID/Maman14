@@ -34,7 +34,7 @@ FILE *preassembler(FILE *as, char *filename)
 	strcat(filename, ".am");
 	am = open(filename, "w");
 
-	while (fgets(line, MAX_LINE_LENGTH + 2, as) != NULL) {
+	while (fgets(line, MAX_LINE_LENGTH + 1, as) != NULL) {
 		lineoffset = 0;
 		i = 0;
 
@@ -93,7 +93,7 @@ char *macrocontentalloc(FILE *as)
 	fpos_t p; /* save current position to return to after counting lines */
 	char *ptr;
 	fgetpos(as, &p);
-	while (fgets(line, MAX_LINE_LENGTH + 2, as) != NULL) {
+	while (fgets(line, MAX_LINE_LENGTH + 1, as) != NULL) {
 		i = 0;
 		skipwhitespace(line, &i);
 		count = countnonwhitespace(line, &i);

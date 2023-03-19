@@ -6,6 +6,23 @@
 #include "strutil.h"
 #include "errutil.h"
 
+enum opbitlocations {
+	OPBIT_ARE_0,
+	OPBIT_ARE_1,
+	OPBIT_DEST_2,
+	OPBIT_DEST_3,
+	OPBIT_SOURCE_4,
+	OPBIT_SOURCE_5,
+	OPBIT_OPCODE_6,
+	OPBIT_OPCODE_7,
+	OPBIT_OPCODE_8,
+	OPBIT_OPCODE_9,
+	OPBIT_PARAM2_10,
+	OPBIT_PARAM2_11,
+	OPBIT_PARAM1_12,
+	OPBIT_PARAM1_13
+};
+
 word *encodelabel(int val)
 {
 	word *w = (word *) alloc(sizeof(w));
@@ -15,12 +32,12 @@ word *encodelabel(int val)
 }
 
 /* utility function for appending instructions to a linked list */
-void addinstructiontolist(void *value, int islabel, struct listnode **instructionptr, int *instructioncount)
+void addinstructiontolist(void *value, int islabel, int line, struct listnode **instructionptr, int *instructioncount)
 {
 	instruction *inst = (instruction *) alloc(sizeof(*inst));
 	inst->value = value;
 	inst->islabel = islabel;
-	inst->addline = 0;
+	inst->line = line;
 	(*instructionptr)->next = linkedlist_newnode(inst);
 	*instructionptr = (*instructionptr)->next;
 	(*instructioncount)++;
@@ -36,31 +53,30 @@ int addnumtoinstructions(char *n, struct listnode **instructionptr, int *instruc
 	inst = (instruction *) alloc(sizeof(*inst));
 	inst->value = (word *) (*instructionptr)->value;
 	inst->islabel = 0;
-	inst->addline = 0;
+	inst->line = 0;
 	((word *) inst->value)->field <<= 2;
 	(*instructionptr)->value = inst;
 	return 1;
 }
 
-enum parsererrno encodeoperation(char *opname, enum symbol opcode, struct listnode **params, struct listnode **instructionptr, int *instructioncount)
+enum parsererrno encodeoperation(char *opname, enum symbol opcode, int line, struct listnode **params, struct listnode **instructionptr, int *instructioncount)
 {
 	struct listnode *paramptr = *params;
 	word *first = (word *) alloc(sizeof(*first)), *registers = NULL;
 	int addressmethod = 0, methods = 0;
 
 	first->field = 0;
-	addinstructiontolist(first, 0, instructionptr, instructioncount);
-	((instruction *) (*instructionptr)->value)->addline = 1;
+	addinstructiontolist(first, 0, line, instructionptr, instructioncount);
 
 	/* opcode */
-	first->field |= (opcode) << 6;
+	first->field |= (opcode) << OPBIT_OPCODE_6;
 
 	/* address methods + parameters 1 & 2 */
 	if (isjumpoperation(opcode)){
 		if(!isvalidlabel((char *)paramptr->value))
 			return PARSER_EINVALIDLABEL;
 		first->field |= (paramptr->next == NULL ? ADDRESS_DIRECT : ADDRESS_JUMP_WITH_PARAMS) << 2;
-		addinstructiontolist(strdupl((char *) paramptr->value), 1, instructionptr, instructioncount);
+		addinstructiontolist(strdupl((char *) paramptr->value), 1, line, instructionptr, instructioncount);
 		paramptr = paramptr->next;
 	}
 	while (paramptr != NULL) {
@@ -68,7 +84,7 @@ enum parsererrno encodeoperation(char *opname, enum symbol opcode, struct listno
 		methods <<= 2;
 		methods |= addressmethod;
 		if (registers != NULL && addressmethod != ADDRESS_DIRECT_REGISTER) {
-			addinstructiontolist(registers, 0, instructionptr, instructioncount);
+			addinstructiontolist(registers, 0, line, instructionptr, instructioncount);
 			registers = NULL;
 		}
 		switch (addressmethod) {
@@ -84,7 +100,7 @@ enum parsererrno encodeoperation(char *opname, enum symbol opcode, struct listno
 		case ADDRESS_DIRECT:
 			if(!isvalidlabel((char *)paramptr->value))
 				return PARSER_EINVALIDLABEL;
-			addinstructiontolist(strdupl(paramptr->value), 1, instructionptr, instructioncount);
+			addinstructiontolist(strdupl(paramptr->value), 1, line, instructionptr, instructioncount);
 			break;
 		case ADDRESS_DIRECT_REGISTER:
 			if (registers == NULL) {
@@ -99,12 +115,12 @@ enum parsererrno encodeoperation(char *opname, enum symbol opcode, struct listno
 		paramptr = paramptr->next;
 	}
 	if (registers != NULL)
-		addinstructiontolist(registers, 0, instructionptr, instructioncount);
-	first->field |= methods << (isjumpoperation(opcode) ? 10 : 2);
+		addinstructiontolist(registers, 0, line, instructionptr, instructioncount);
+	first->field |= methods << (isjumpoperation(opcode) ? OPBIT_PARAM2_10 : OPBIT_DEST_2);
 
 	switch (opcode) {
 	case OPCODE_LEA:
-		if (!(((first->field & (1 << 5)) >> 5) ^ ((first->field & (1 << 4)) >> 4)))
+		if (!(((first->field & (1 << OPBIT_SOURCE_5)) >> OPBIT_SOURCE_5) ^ ((first->field & (1 << OPBIT_SOURCE_4)) >> OPBIT_SOURCE_4)))
 			return PARSER_EINVALIDSOURCEPARAM;
 	case OPCODE_MOV:
 	case OPCODE_ADD:
@@ -117,7 +133,7 @@ enum parsererrno encodeoperation(char *opname, enum symbol opcode, struct listno
 	case OPCODE_BNE:
 	case OPCODE_RED:
 	case OPCODE_JSR:
-		if (!(first->field & ((1 << 3) | (1 << 2))))
+		if (!(first->field & ((1 << OPBIT_DEST_3) | (1 << OPBIT_DEST_2))))
 			return PARSER_EINVALIDDESTPARAM;
 		break;
 	default:
@@ -174,7 +190,7 @@ enum parsererrno encodestring(char *s, struct listnode **dataptr, int *datacount
 
 enum parsererrno parseparams(char *line, int *i, int paramamount, struct listnode **head)
 {
-	int count, ii, isjumpwithparams;
+	int count, ii, isjumpwithparams = 0;
 	char *param, *jumpend;
 	struct listnode *n = NULL, *tmp;
 	if (paramamount == PARAM_UNKNOWN)
@@ -203,7 +219,7 @@ enum parsererrno parseparams(char *line, int *i, int paramamount, struct listnod
 		if (countnonwhitespace(param, &ii) == 0)
 			return paramamount == PARAM_JUMP ? PARSER_EJUMPPARAMS : PARSER_EUNEXPECTEDCOMMA;
 		if ((count = skipwhitespace(param, &ii)) > 0) {
-			if (paramamount == PARAM_JUMP || countnonwhitespace(param, &ii) > 0)
+			if (isjumpwithparams || countnonwhitespace(param, &ii) > 0)
 				return PARSER_EUNEXPECTEDSPACE;
 			param[ii-count] = '\0';
 		}

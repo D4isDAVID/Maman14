@@ -5,6 +5,8 @@ THISINVALIDLABELNAMEISWAYTOOLONG: mov #0, r0
 
 ; this label is a pre-defined symbol
 mov: mov #0, r0
+r0: mov #0, r0
+.entry: mov #0, r0
 
 ; this label is defined twice
 DUPLICATELABEL0: mov #0, r0
@@ -60,4 +62,4 @@ STRINGNONASCII: .string "¶"
 
 UNKNOWNINSTRUCTION: abc
 
-LINEOVERFLOW: .string "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+LINEOVERFLOW: .string "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ013"

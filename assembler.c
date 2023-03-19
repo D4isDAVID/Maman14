@@ -44,9 +44,9 @@ int main(int argc, char **argv)
 		data = linkedlist_newnode(NULL);
 
 		ob = firstphase(am, filename, instructions, data, labels, labelattributes);
-		close(am);
-	
-		if (ob == NULL || secondphase(ob, filename, instructions->next, data->next, labels, labelattributes)) {
+
+		fseek(am, 0, SEEK_SET);
+		if ((ob == NULL || secondphase(am, ob, filename, instructions->next, data->next, labels, labelattributes)) && close(am) != EOF) {
 			strcat(filename, ".ent");
 			remove(filename);
 			replaceextension(filename, ".ext");

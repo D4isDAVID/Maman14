@@ -5,7 +5,11 @@
 #include "linkedlist.h"
 #include "symbols.h"
 
+#define MEMORY_START 100
+#define MEMORY_END 256
+
 #define MAX_LINE_LENGTH 80 /* max line length without terminator and without possible final newline */
+#define WORD_LENGTH 14
 
 enum parsererrno {
 	PARSER_OK,
@@ -24,18 +28,18 @@ enum parsererrno {
 };
 
 typedef struct word {
-	unsigned int field : 14;
+	unsigned int field : WORD_LENGTH;
 } word;
 
 typedef struct instruction {
 	void *value;
 	int islabel;
-	int addline;
+	int line;
 } instruction;
 
 word *encodelabel(int);
 /* encodes the given operation and its parameters and appends it to the linked list */
-enum parsererrno encodeoperation(char *, enum symbol, struct listnode **, struct listnode **, int *);
+enum parsererrno encodeoperation(char *, enum symbol, int, struct listnode **, struct listnode **, int *);
 /* encodes the given string as a number and appends it to the linked list.
 	returns whether the function was given a valid number or not */
 int encodenum(char *, struct listnode **, int *);

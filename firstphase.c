@@ -27,12 +27,12 @@ FILE *firstphase(FILE *am, char *filename, struct listnode *instructions, struct
 	struct hashnode *attributesptr;
 	FILE *ob;
 
-	while (fgets(line, MAX_LINE_LENGTH + 2, am) != NULL) {
+	while (fgets(line, MAX_LINE_LENGTH + 1, am) != NULL) {
 		linecount++;
 		toolong = 0;
 
 		while (strchr(line, '\n') == NULL && strchr(line, EOF) == NULL) {
-			if (fgets(line, MAX_LINE_LENGTH + 2, am) == NULL)
+			if (fgets(line, MAX_LINE_LENGTH + 1, am) == NULL)
 				break;
 			if (!toolong) {
 				printerr(filename, linecount, ERROR_LINEOVERFLOW);
@@ -56,7 +56,7 @@ FILE *firstphase(FILE *am, char *filename, struct listnode *instructions, struct
 			if (symbols_get(labelname) != UNKNOWN_SYMBOL) {
 				haserrors = 1;
 				printerr(filename, linecount, ERROR_LABELSYMBOL, labelname);
-			}else if (!isvalidlabel(labelname)) {
+			} else if (!isvalidlabel(labelname)) {
 				haserrors = 1;
 				printerr(filename, linecount, ERROR_LABELINVALIDNAME, labelname);
 			} else
@@ -159,10 +159,10 @@ FILE *firstphase(FILE *am, char *filename, struct listnode *instructions, struct
 			}
 		} else if (isoperation(opname)) {
 			if (labeldef) {
-				hashmap_setint(labels, labelname, 100 + instructioncount);
+				hashmap_setint(labels, labelname, MEMORY_START + instructioncount);
 				hashmap_addbittofield(labelattributes, labelname, LABEL_INSTRUCTION);
 			}
-			switch (encodeoperation(opname, opcode, &params, &instructionptr, &instructioncount)) {
+			switch (encodeoperation(opname, opcode, linecount, &params, &instructionptr, &instructioncount)) {
 			case PARSER_EINVALIDNUMBER:
 				printerr(filename, linecount, ERROR_DATAINVALIDNUMBER, (char *) params->value);
 				break;
@@ -193,11 +193,11 @@ FILE *firstphase(FILE *am, char *filename, struct listnode *instructions, struct
 		for (attributesptr = labelattributes->tab[i]; attributesptr != NULL; attributesptr = attributesptr->next) {
 			labelattribute = (int *) attributesptr->value;
 			if (labelattribute != NULL && *labelattribute & LABEL_DATA)
-				hashmap_setint(labels, attributesptr->key, *hashmap_getint(labels, attributesptr->key) + 100 + instructioncount);
+				hashmap_setint(labels, attributesptr->key, *hashmap_getint(labels, attributesptr->key) + MEMORY_START + instructioncount);
 		}
 	}
 
-	if (instructioncount + datacount > 256-100) {
+	if (instructioncount + datacount > MEMORY_END-MEMORY_START) {
 		haserrors = 1;
 		printerr(filename, linecount, ERROR_BINARYOVERFLOW);
 	}
