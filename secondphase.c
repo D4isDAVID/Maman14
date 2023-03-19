@@ -39,17 +39,18 @@ int secondphase(FILE *ob, char *filename, struct listnode *instructions, struct 
 				labelname = (char *) inst->value;
 				labelattribute = hashmap_getint(labelattributes, labelname);
 				labelvalue = hashmap_getint(labels, labelname);
-				if (labelvalue == NULL && !(*labelattribute & LABEL_EXTERNAL)) {
+				if (labelvalue == NULL && labelattribute != NULL && !(*labelattribute & LABEL_EXTERNAL)) {
 					haserrors = 1;
 					printerr(filename, linecount, ERROR_LABELNOTDEFINED, labelname);
 				}
-				if (*labelattribute & LABEL_EXTERNAL){
-					encode(ENC_EXTERNAL, ob);
-					hasext = 1;
-					fprintf(ext,"%s\t%d\n", labelname, linecount);
+				if (labelattribute != NULL) {
+					if (*labelattribute & LABEL_EXTERNAL) {
+						encode(ENC_EXTERNAL, ob);
+						hasext = 1;
+						fprintf(ext,"%s\t%d\n", labelname, linecount);
+					} else
+						encode(encodelabel(*labelvalue)->field, ob);
 				}
-				else
-					encode(encodelabel(*labelvalue)->field, ob);
 			} else
 				encode(((word *)inst->value)->field, ob);
 			if (!listptr->next) {
