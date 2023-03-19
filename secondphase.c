@@ -10,20 +10,22 @@ void encode(unsigned int num, FILE *ob);
 
 int secondphase(FILE *am, FILE *ob, char *filename, struct listnode *instructions, struct listnode *data, struct hashmap *labels, struct hashmap *labelattributes)
 {
-	struct listnode *listptr = instructions;
-	int *labelattribute,
-		*labelvalue,
-		binarycount = MEMORY_START,
-		linecount = 0,
-		haserrors = 0,
-		isdata = 0,
-		hasext = 0,
-		hasent = 0,
-		i,
-		count;
-	char *labelname, line[MAX_LINE_LENGTH + 2], *op;
-	FILE *ent, *ext;
-	instruction *inst;
+	struct listnode *listptr = instructions->next; /* pointer to both the `instructions` and `data` lists */
+	char *labelname, /* the name of the current label */
+		line[MAX_LINE_LENGTH + 2], /* the current line in the code */
+		*op; /* the operation in the current line */
+	int *labelattribute, /* a value from `labelattributes` */
+		*labelvalue, /* a value from `labels` */
+		binarycount = MEMORY_START, /* the number of the word (14 bits) currently being printed */
+		linecount = 0, /* the current line in the source code */
+		haserrors = 0, /* whether errors have been found */
+		isdata = 0, /* whether `listptr` is pointing to `data` or not */
+		hasext = 0, /* whether the code uses externals */
+		hasent = 0, /* whether the code defines entries */
+		i, /* the current character in the current line */
+		count; /* results from `skipwhitespace` and `countnonwhitespace` */
+	FILE *ent, *ext; /* the `.ent` and `.ext` files */
+	instruction *inst; /* the value of `listptr`, if it's pointing to `instructions` */
 
 	strcat(filename, ".ent");
 	ent = open(filename, "w");
@@ -31,22 +33,28 @@ int secondphase(FILE *am, FILE *ob, char *filename, struct listnode *instruction
 	ext = open(filename, "w");
 	replaceextension(filename, "");
 
-	while (fgets(line, MAX_LINE_LENGTH, am)) {
+	/* ensure valid `.entry` statements */
+	while (fgets(line, MAX_LINE_LENGTH + 2, am)) {
 		linecount++;
 		i = 0;
 
+		/* we can skip anything not regarding `.entry` */
 		if ((op = strstr(line, ".entry")) == NULL)
 			continue;
 
+		/* skip from `.entry` to the label name */
 		countnonwhitespace(op, &i);
 		skipwhitespace(op, &i);
 
+		/* copy the label name and its attributes */
 		count = countnonwhitespace(op, &i);
 		labelname = strndupl(&op[i-count], count);
-
 		labelattribute = hashmap_getint(labelattributes, labelname);
+
+		/* we can ignore this if the label isn't defined as an entry */
 		if (labelattribute != NULL && *labelattribute & LABEL_ENTRY) {
-			if(*labelattribute & (LABEL_DATA | LABEL_INSTRUCTION)) {
+			/* this is valid if the label is defined as data or an instruction */
+			if (*labelattribute & (LABEL_DATA | LABEL_INSTRUCTION)) {
 				hasent = 1;
 				fprintf(ent,"%s\t%d\n", labelname, *hashmap_getint(labels, labelname));
 			} else {
@@ -54,42 +62,61 @@ int secondphase(FILE *am, FILE *ob, char *filename, struct listnode *instruction
 				printerr(filename, linecount, ERROR_LABELNOTDEFINED, labelname);
 			}
 		}
+
+		free(labelname);
 	}
 
+	/* ensure valid label usages and also output binary into the `.ob` file */
 	linecount = 0;
 	while (listptr != NULL) {
+		/* output the binary count */
 		fprintf(ob, "0%d\t", binarycount);
+
+		/* if `listptr` is pointing to an instruction */
 		if (!isdata) {
 			labelname = NULL;
 			inst = listptr->value;
+
+			/* save the linecount if the current word has one associated with it */
 			if (inst->line)
 				linecount = inst->line;
+
+			/* if this is a label then check its validity */
 			if (inst->islabel) {
+				/* copy over the label name, value, and attributes */
 				labelname = (char *) inst->value;
 				labelattribute = hashmap_getint(labelattributes, labelname);
 				labelvalue = hashmap_getint(labels, labelname);
+
+				/* this is invalid if the label doesn't have a value (externals don't have one) and isn't an external */
 				if (labelvalue == NULL && (labelattribute == NULL || !(*labelattribute & LABEL_EXTERNAL))) {
 					haserrors = 1;
 					printerr(filename, linecount, ERROR_LABELNOTDEFINED, labelname);
 				}
+
+				/* ensure that `labelattribute` isn't NULL for some reason */
 				if (labelattribute != NULL) {
+					/* we can simply output `............./` if this is an external */
 					if (*labelattribute & LABEL_EXTERNAL) {
 						encode(ENC_EXTERNAL, ob);
 						hasext = 1;
 						fprintf(ext,"%s\t%d\n", labelname, binarycount);
-					} else
-						encode(encodelabel(*labelvalue)->field, ob);
+					} else /* otherwise encode the label */
+						encode(encodelabel(*labelvalue), ob);
 				}
-			} else
+			} else /* otherwise this is a word and can be simply printed */
 				encode(((word *)inst->value)->field, ob);
+
+			/* if there are no more instructions then loop over `data` */
 			if (!listptr->next) {
 				isdata = 1;
-				listptr = linkedlist_newnode("");
-				listptr->next = data;
+				listptr = data;
 			}
-		} else
-			encode(((word *)listptr->value)->field, ob);
+		} else /* otherwise this is data */
+			encode(((word *) listptr->value)->field, ob);
+
 		fputc('\n', ob);
+
 		binarycount++;
 		listptr = listptr->next;
 	}

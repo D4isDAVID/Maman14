@@ -7,6 +7,7 @@
 /* returns a hash of the given string */
 unsigned int hash(char *key)
 {
+	/* adapted from the K&R book */
 	unsigned int hashval;
 	for (hashval = 0; *key != '\0'; key++)
 		hashval = *key + 31 * hashval;
@@ -18,6 +19,7 @@ struct hashmap *hashmap_new(void)
 	int i;
 	struct hashmap *m = (struct hashmap *) alloc(sizeof(*m));
 	m->size = 0;
+	/* initialize the `tab` array to avoid seg fault */
 	for (i = 0; i < HASHMAP_CAPACITY; i++)
 		m->tab[i] = NULL;
 	return m;
@@ -25,6 +27,7 @@ struct hashmap *hashmap_new(void)
 
 void hashmap_free(struct hashmap *m)
 {
+	/* adapted from the K&R book */
 	struct hashnode *n, *tmp;
 	int i;
 	if (m == NULL)
@@ -45,31 +48,34 @@ void hashmap_free(struct hashmap *m)
 
 struct hashnode *getnode(struct hashmap *m, char *key)
 {
+	/* adapted from the K&R book */
 	struct hashnode *n;
 	if (m == NULL)
 		return NULL;
-	for (n = m->tab[hash(key)]; n != NULL; n = n->next) {
+	for (n = m->tab[hash(key)]; n != NULL; n = n->next)
 		if (strcmp(n->key, key) == 0)
 			return n;
-	}
 	return NULL;
 }
 
 int *hashmap_getint(struct hashmap *m, char *key)
 {
 	struct hashnode *n;
+	/* if nothing is NULL then we can return the value, otherwise NULL */
 	return m == NULL || (n = getnode(m, key)) == NULL ? NULL : (int *) n->value;
 }
 
 char *hashmap_getstr(struct hashmap *m, char *key)
 {
 	struct hashnode *n;
+	/* if nothing is NULL then we can return the value, otherwise NULL */
 	return m == NULL || (n = getnode(m, key)) == NULL ? NULL : (char *) n->value;
 }
 
 /* prepares a new node and returns it to later have its value set */
 struct hashnode *preparenode(struct hashmap *m, char *key)
 {
+	/* adapted from the K&R book */
 	struct hashnode *n;
 	unsigned int hashval;
 	if (m == NULL)
@@ -89,8 +95,8 @@ struct hashnode *preparenode(struct hashmap *m, char *key)
 
 void *hashmap_setint(struct hashmap *m, char *key, int value)
 {
-	struct hashnode *n = preparenode(m, key);
-	if (m == NULL || n == NULL)
+	struct hashnode *n;
+	if (m == NULL || (n = preparenode(m, key)) == NULL)
 		return NULL;
 	n->value = alloc(sizeof(value));
 	*((int *) n->value) = value;
@@ -99,8 +105,8 @@ void *hashmap_setint(struct hashmap *m, char *key, int value)
 
 void *hashmap_setstr(struct hashmap *m, char *key, char *value)
 {
-	struct hashnode *n = preparenode(m, key);
-	if (m == NULL || n == NULL)
+	struct hashnode *n;
+	if (m == NULL || (n = preparenode(m, key)) == NULL)
 		return NULL;
 	n->value = alloc(sizeof(char) * strlen(value));
 	strcpy(n->value, value);
@@ -112,6 +118,8 @@ void hashmap_addbittofield(struct hashmap *m, char *key, int value)
 	int *n;
 	if (m == NULL)
 		return;
+	/* since we are trying to *add* to a bitfield, try to get its existing value */
 	n = hashmap_getint(m, key);
+	/* if there is no existing value, then assign it to the given `value` parameter, otherwise add it to the existing one */
 	hashmap_setint(m, key, n == NULL ? value : ((*n) | value));
 }

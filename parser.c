@@ -6,6 +6,12 @@
 #include "strutil.h"
 #include "errutil.h"
 
+void freeinstruction(void *i)
+{
+	free(((instruction *) i)->value);
+	free(i);
+}
+
 enum opbitlocations {
 	OPBIT_ARE_0,
 	OPBIT_ARE_1,
@@ -23,12 +29,11 @@ enum opbitlocations {
 	OPBIT_PARAM1_13
 };
 
-word *encodelabel(int val)
+unsigned int encodelabel(int val)
 {
-	word *w = (word *) alloc(sizeof(w));
-	w->field = ENC_RELOCATABLE;
-	w->field |= val << 2;
-	return w;
+	int i = ENC_RELOCATABLE;
+	i |= val << 2;
+	return i;
 }
 
 /* utility function for appending instructions to a linked list */
@@ -38,7 +43,7 @@ void addinstructiontolist(void *value, int islabel, int line, struct listnode **
 	inst->value = value;
 	inst->islabel = islabel;
 	inst->line = line;
-	(*instructionptr)->next = linkedlist_newnode(inst);
+	(*instructionptr)->next = linkedlist_newnode(inst, freeinstruction);
 	*instructionptr = (*instructionptr)->next;
 	(*instructioncount)++;
 }
@@ -56,6 +61,7 @@ int addnumtoinstructions(char *n, struct listnode **instructionptr, int *instruc
 	inst->line = 0;
 	((word *) inst->value)->field <<= 2;
 	(*instructionptr)->value = inst;
+	(*instructionptr)->free = freeinstruction;
 	return 1;
 }
 
@@ -156,7 +162,7 @@ int encodenum(char *s, struct listnode **dataptr, int *datacount)
 	w->field = atoi(s) - isnegative;
 	if (isnegative)
 		w->field = ~w->field;
-	(*dataptr)->next = linkedlist_newnode(w);
+	(*dataptr)->next = linkedlist_newnode(w, free);
 	*dataptr = (*dataptr)->next;
 	(*datacount)++;
 	return 1;
@@ -179,7 +185,7 @@ enum parsererrno encodestring(char *s, struct listnode **dataptr, int *datacount
 			return PARSER_EINVALIDCHAR;
 		w = (word *) alloc(sizeof(*w));
 		w->field = s == end-1 ? '\0' : *s; /* null terminator if we are at the end of the string */
-		tmp = linkedlist_newnode(w);
+		tmp = linkedlist_newnode(w, free);
 		if (*dataptr != NULL)
 			(*dataptr)->next = tmp;
 		*dataptr = tmp;
@@ -223,7 +229,7 @@ enum parsererrno parseparams(char *line, int *i, int paramamount, struct listnod
 				return PARSER_EUNEXPECTEDSPACE;
 			param[ii-count] = '\0';
 		}
-		tmp = linkedlist_newnode(param);
+		tmp = linkedlist_newnode(param, free);
 		if (n != NULL)
 			(n)->next = tmp;
 		n = tmp;

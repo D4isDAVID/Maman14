@@ -41,10 +41,16 @@ FILE *open(char *, char *);
 /* `fclose` wrapper that if failed, prints an error and exits the program */
 int close(FILE *);
 
+/* initializes the error message storage */
 void errutil_prepare(void);
+/* frees the allocated storage */
 void errutil_free(void);
 
+/* prints the message of the given errno as a warning in the given filename in the given line.
+	supports `printf`-like formatting */
 void printwarn(char *, int, enum errutil_errno, ...);
+/* prints the message of the given errno as a error in the given filename in the given line.
+	supports `printf`-like formatting */
 void printerr(char *, int, enum errutil_errno, ...);
 
 #endif

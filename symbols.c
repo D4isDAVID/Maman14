@@ -10,6 +10,7 @@ int paramamountsize;
 
 void symbols_prepare(void)
 {
+	/* operation definitions */
 	operations = hashmap_new();
 	hashmap_setint(operations, "mov", OPCODE_MOV);
 	hashmap_setint(operations, "cmp", OPCODE_CMP);
@@ -28,12 +29,14 @@ void symbols_prepare(void)
 	hashmap_setint(operations, "rts", OPCODE_RTS);
 	hashmap_setint(operations, "stop", OPCODE_STOP);
 
+	/* directive definitions */
 	directives = hashmap_new();
 	hashmap_setint(directives, ".data", DIRECTIVE_DATA);
 	hashmap_setint(directives, ".string", DIRECTIVE_STRING);
 	hashmap_setint(directives, ".entry", DIRECTIVE_ENTRY);
 	hashmap_setint(directives, ".extern", DIRECTIVE_EXTERN);
 
+	/* register definitions */
 	registers = hashmap_new();
 	hashmap_setint(registers, "r0", REGISTER);
 	hashmap_setint(registers, "r1", REGISTER);
@@ -44,6 +47,7 @@ void symbols_prepare(void)
 	hashmap_setint(registers, "r6", REGISTER);
 	hashmap_setint(registers, "r7", REGISTER);
 
+	/* parameter amount definitions */
 	paramamountsize = operations->size + directives->size;
 	paramamounts = (enum paramamount *) alloc(sizeof(*paramamounts) * paramamountsize);
 	paramamounts[OPCODE_JMP] = PARAM_JUMP;

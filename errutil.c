@@ -91,6 +91,8 @@ void printerr(char *filename, int line, enum errutil_errno e, ...)
 	va_end(args);
 }
 
+/* prints the message of the given errno with the given prefix in the given filename in the given line.
+	supports `printf`-like formatting */
 void prettyprint(char *prefix, char *filename, int line, char *s, va_list args)
 {
 	printf("%s: %s.am:%d - ", prefix, filename, line);

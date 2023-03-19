@@ -1,4 +1,4 @@
-/* symbols registry */
+/* symbols/built-in constants registry */
 #ifndef SYMBOLS_H
 #define SYMBOLS_H
 
@@ -60,7 +60,9 @@ enum labelattribute {
 	LABEL_INSTRUCTION = 1 << 3
 };
 
+/* initializes the constants storage */
 void symbols_prepare(void);
+/* frees the constants storage */
 void symbols_free(void);
 
 /* returns an enum value of the given symbol, or `UNKNOWN_SYMBOL` for non-existent ones */

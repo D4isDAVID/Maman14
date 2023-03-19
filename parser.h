@@ -34,10 +34,11 @@ typedef struct word {
 typedef struct instruction {
 	void *value;
 	int islabel;
-	int line;
+	int line; /* the line associated with this instruction (0 if unknown) */
 } instruction;
 
-word *encodelabel(int);
+
+unsigned int encodelabel(int);
 /* encodes the given operation and its parameters and appends it to the linked list */
 enum parsererrno encodeoperation(char *, enum symbol, int, struct listnode **, struct listnode **, int *);
 /* encodes the given string as a number and appends it to the linked list.
