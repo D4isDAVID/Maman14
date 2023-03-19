@@ -31,14 +31,14 @@ FILE *firstphase(FILE *am, char *filename, struct listnode *instructions, struct
 		linecount++;
 		toolong = 0;
 
-		while (strchr(line, '\n') == NULL) {
+		while (strchr(line, '\n') == NULL && strchr(line, EOF) == NULL) {
+			if (fgets(line, MAX_LINE_LENGTH + 2, am) == NULL)
+				break;
 			if (!toolong) {
 				printerr(filename, linecount, ERROR_LINEOVERFLOW);
 				toolong = 1;
 				haserrors = 1;
 			}
-			if (fgets(line, MAX_LINE_LENGTH + 2, am) == NULL)
-				break;
 		}
 		if (toolong)
 			continue;

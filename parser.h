@@ -30,6 +30,7 @@ typedef struct word {
 typedef struct instruction {
 	void *value;
 	int islabel;
+	int addline;
 } instruction;
 
 word *encodelabel(int);
@@ -48,6 +49,10 @@ enum parsererrno parseparams(char *, int *, int, struct listnode **);
 /* returns the address method of the given string */
 enum addressmethod determineaddressmethod(char *s);
 
+/* returns whether the given character is either a space or a tab */
+int isvalidspace(char);
+/* returns whether the given character terminates the line in any way */
+int islineterminator(char c);
 /* returns whether the given string is a valid number (operator `+`/`-` followed by digits `0-9`) */
 int isvalidnum(char *);
 /* returns whether the given string is a valid label (30 characters long and starts with a letter followed by letters or digits) */

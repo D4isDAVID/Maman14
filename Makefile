@@ -1,19 +1,19 @@
 CCX := gcc -Wall -ansi -pedantic
-SRC := $(wildcard *.c)
+SRC = $(filter-out assembler.c, $(wildcard *.c))
 BIN := $(SRC:%.c=%.o)
-TEST := $(wildcard tests/*.as)
+TESTS := $(wildcard tests/*.as)
 
 all: assembler
 
-assembler: $(BIN)
-	$(CCX) $(BIN) -o assembler
-%.o: %.c
+assembler: assembler.c $(BIN)
+	$(CCX) assembler.c $(BIN) -o assembler
+%.o: %.c %.h
 	$(CCX) -c $< -o $@
 
-test: assembler $(TEST)
-	./assembler $(TEST:%.as=%)
+.PHONY: test clean
+
+test: assembler $(TESTS)
+	./assembler $(TESTS:%.as=%)
 
 clean:
 	rm -f *.o assembler **/*.am **/*.ob **/*.ent **/*.ext
-
-.PHONY: test clean

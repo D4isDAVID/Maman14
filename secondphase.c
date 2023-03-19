@@ -14,7 +14,8 @@ int secondphase(FILE *ob, char *filename, struct listnode *instructions, struct 
 	struct hashnode *attributesptr;
 	int *labelattribute,
 		*labelvalue,
-		linecount = 100,
+		binarycount = 100,
+		linecount = 0,
 		haserrors = 0,
 		isdata = 0,
 		hasext = 0,
@@ -31,10 +32,12 @@ int secondphase(FILE *ob, char *filename, struct listnode *instructions, struct 
 	replaceextension(filename, "");
 
 	while (listptr != NULL) {
-		fprintf(ob, "0%d\t", linecount);
+		fprintf(ob, "0%d\t", binarycount);
 		if (!isdata) {
 			labelname = NULL;
 			inst = listptr->value;
+			if (inst->addline)
+				linecount++;
 			if (inst->islabel) {
 				labelname = (char *) inst->value;
 				labelattribute = hashmap_getint(labelattributes, labelname);
@@ -47,7 +50,7 @@ int secondphase(FILE *ob, char *filename, struct listnode *instructions, struct 
 					if (*labelattribute & LABEL_EXTERNAL) {
 						encode(ENC_EXTERNAL, ob);
 						hasext = 1;
-						fprintf(ext,"%s\t%d\n", labelname, linecount);
+						fprintf(ext,"%s\t%d\n", labelname, binarycount);
 					} else
 						encode(encodelabel(*labelvalue)->field, ob);
 				}
@@ -61,7 +64,7 @@ int secondphase(FILE *ob, char *filename, struct listnode *instructions, struct 
 		} else
 			encode(((word *)listptr->value)->field, ob);
 		fputc('\n', ob);
-		linecount++;
+		binarycount++;
 		listptr = listptr->next;
 	}
 
@@ -69,13 +72,13 @@ int secondphase(FILE *ob, char *filename, struct listnode *instructions, struct 
 		attributesptr = (labelattributes)->tab[i];
 		while (attributesptr != NULL) {
 			labelattribute = (int *) attributesptr->value;
-			if (labelattribute != NULL && *labelattribute & LABEL_ENTRY){
-				if(*labelattribute & (LABEL_DATA | LABEL_INSTRUCTION)){
-					hasent=1;
+			if (labelattribute != NULL && *labelattribute & LABEL_ENTRY) {
+				if(*labelattribute & (LABEL_DATA | LABEL_INSTRUCTION)) {
+					hasent = 1;
 					fprintf(ent,"%s\t%d\n", attributesptr->key, *hashmap_getint(labels, attributesptr->key));
-				}else{
+				} else {
 					haserrors = 1;
-					printerr(filename, linecount, ERROR_LABELNOTDEFINED, attributesptr->key);
+					printerr(filename, binarycount, ERROR_LABELNOTDEFINED, attributesptr->key);
 				}
 			}
 			attributesptr = attributesptr->next;
@@ -91,6 +94,7 @@ int secondphase(FILE *ob, char *filename, struct listnode *instructions, struct 
 		remove(filename);
 		replaceextension(filename, "");
 	}
+
 	if (!hasext) {
 		strcat(filename, ".ext");
 		remove(filename);

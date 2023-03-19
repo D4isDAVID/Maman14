@@ -20,6 +20,7 @@ void addinstructiontolist(void *value, int islabel, struct listnode **instructio
 	instruction *inst = (instruction *) alloc(sizeof(*inst));
 	inst->value = value;
 	inst->islabel = islabel;
+	inst->addline = 0;
 	(*instructionptr)->next = linkedlist_newnode(inst);
 	*instructionptr = (*instructionptr)->next;
 	(*instructioncount)++;
@@ -35,6 +36,7 @@ int addnumtoinstructions(char *n, struct listnode **instructionptr, int *instruc
 	inst = (instruction *) alloc(sizeof(*inst));
 	inst->value = (word *) (*instructionptr)->value;
 	inst->islabel = 0;
+	inst->addline = 0;
 	((word *) inst->value)->field <<= 2;
 	(*instructionptr)->value = inst;
 	return 1;
@@ -48,6 +50,7 @@ enum parsererrno encodeoperation(char *opname, enum symbol opcode, struct listno
 
 	first->field = 0;
 	addinstructiontolist(first, 0, instructionptr, instructioncount);
+	((instruction *) (*instructionptr)->value)->addline = 1;
 
 	/* opcode */
 	first->field |= (opcode) << 6;
@@ -101,7 +104,7 @@ enum parsererrno encodeoperation(char *opname, enum symbol opcode, struct listno
 
 	switch (opcode) {
 	case OPCODE_LEA:
-		if (((first->field & (1 << 5)) >> 5) ^ ((first->field & (1 << 4)) >> 4))
+		if (!(((first->field & (1 << 5)) >> 5) ^ ((first->field & (1 << 4)) >> 4)))
 			return PARSER_EINVALIDSOURCEPARAM;
 	case OPCODE_MOV:
 	case OPCODE_ADD:
@@ -171,13 +174,14 @@ enum parsererrno encodestring(char *s, struct listnode **dataptr, int *datacount
 
 enum parsererrno parseparams(char *line, int *i, int paramamount, struct listnode **head)
 {
-	int count, ii;
+	int count, ii, isjumpwithparams;
 	char *param, *jumpend;
 	struct listnode *n = NULL, *tmp;
 	if (paramamount == PARAM_UNKNOWN)
 		return PARSER_OK;
 	if (paramamount == PARAM_JUMP) {
 		if (strchr(&line[*i], '(') != NULL) {
+			isjumpwithparams = 1;
 			jumpend = strchr(&line[*i], ')');
 			if (jumpend == NULL)
 				return PARSER_EJUMPPARAMS;
@@ -187,8 +191,10 @@ enum parsererrno parseparams(char *line, int *i, int paramamount, struct listnod
 			if (countnonwhitespace(jumpend, &ii))
 				return PARSER_EJUMPPARAMS;
 			*(--jumpend) = '\0';
-		} else
+		} else {
+			isjumpwithparams = 0;
 			paramamount = PARAM_SINGLE;
+		}
 	}
 	while ((count = countnonwhitespace(line, i)) > 0 && paramamount != 0) {
 		param = dupluntil(&line[(*i)-count], paramamount == PARAM_JUMP ? '(' : ',');
@@ -212,7 +218,7 @@ enum parsererrno parseparams(char *line, int *i, int paramamount, struct listnod
 			(*i)++;
 		else if (paramamount == PARAM_JUMP)
 			return PARSER_EJUMPPARAMS;
-		if (skipwhitespace(line, i) > 0 && paramamount == PARAM_JUMP)
+		if (skipwhitespace(line, i) > 0 && isjumpwithparams)
 			return PARSER_EUNEXPECTEDSPACE;
 		paramamount--;
 	}
@@ -253,13 +259,11 @@ int isvalidlabel(char *s)
 	return count <= 30;
 }
 
-/* returns whether the given character is either a space or a tab */
 int isvalidspace(char c)
 {
 	return c == ' ' || c == '\t';
 }
 
-/* returns whether the given character terminates the line in any way */
 int islineterminator(char c)
 {
 	return c == '\n' || c == '\0' || c == EOF;
