@@ -29,24 +29,27 @@ int main(int argc, char **argv)
 	errutil_prepare();
 
 	for (i = 1; i < argc; i++) {
-		filename = alloc(sizeof(char) * (strlen(argv[i]) + 5)); /* enough space for filename + extension + null terminator */
+		filename = alloc(sizeof(char) * (strlen(argv[i]) + 4 + 1)); /* enough space for filename + extension (max 4) + null terminator (1) */
 		strcpy(filename, argv[i]);
 		strcat(filename, ".as");
 		as = open(filename, "r");
 
-		replaceextension(filename, ""); /* we don't need the .as extension anymore */
+		replaceextension(filename, ""); /* preassembler needs filename without extension */
 		am = preassembler(as, filename);
-		close(as);
+		close(as); /* we won't need this file anymore */
 
 		labels = hashmap_new();
 		labelattributes = hashmap_new();
-		instructions = linkedlist_newnode(NULL); /* garbage value to start the list */
-		data = linkedlist_newnode(NULL);
+		instructions = linkedlist_newnode(NULL, free); /* garbage value to start the list */
+		data = linkedlist_newnode(NULL, free);
 
 		ob = firstphase(am, filename, instructions, data, labels, labelattributes);
-		close(am);
-	
-		if (ob == NULL || secondphase(ob, filename, instructions->next, data->next, labels, labelattributes)) {
+
+		fseek(am, 0, SEEK_SET);
+		/* `ob` will be NULL if any errors are found in the first phase.
+			`secondphase` will whether it found any errors.
+			`close` should never return `EOF` but is included in the condition to reduce code duplication */
+		if ((ob == NULL || secondphase(am, ob, filename, instructions, data, labels, labelattributes)) && close(am) != EOF) {
 			strcat(filename, ".ent");
 			remove(filename);
 			replaceextension(filename, ".ext");
@@ -59,6 +62,7 @@ int main(int argc, char **argv)
 		hashmap_free(labelattributes);
 		linkedlist_free(instructions);
 		linkedlist_free(data);
+		free(filename);
 	}
 
 	symbols_free();

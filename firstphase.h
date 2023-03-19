@@ -1,4 +1,4 @@
-/* first assembler phase: garners any information it can about the code (instructions, data, labels) to later be used in the second phase
+/* first assembler phase: gathers any information it can about the code (instructions, data, labels) to later be used in the second phase
 	everything aside from labels is encoded in this phase */
 #ifndef FIRSTPHASE_H
 #define FIRSTPHASE_H

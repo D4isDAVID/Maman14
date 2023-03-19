@@ -52,6 +52,8 @@ void errutil_prepare(void)
 	msg[ERROR_PARAMSTOOMANY] = "too many parameters (expected %d)";
 	msg[ERROR_PARAMSJUMP] = "jump operations must receive a label followed by either 2 parameters inside parentheses, or no parameters at all";
 
+	msg[ERROR_OPINVALIDSOURCE] = "invalid source parameter for %s";
+	msg[ERROR_OPINVALIDDEST] = "invalid destination parameter for %s";
 	msg[ERROR_DATAINVALIDNUMBER] = "invalid number (%s)";
 
 	msg[ERROR_STRINGSTARTQUOTES] = "string declarations must start with quotes (\")";
@@ -89,6 +91,8 @@ void printerr(char *filename, int line, enum errutil_errno e, ...)
 	va_end(args);
 }
 
+/* prints the message of the given errno with the given prefix in the given filename in the given line.
+	supports `printf`-like formatting */
 void prettyprint(char *prefix, char *filename, int line, char *s, va_list args)
 {
 	printf("%s: %s.am:%d - ", prefix, filename, line);

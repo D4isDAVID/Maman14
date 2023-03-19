@@ -8,6 +8,6 @@
 #include "linkedlist.h"
 
 /* phase entry point */
-int secondphase(FILE *ob, char *filename, struct listnode *instructions, struct listnode *data, struct hashmap *labels, struct hashmap *labelattributes);
+int secondphase(FILE *am, FILE *ob, char *filename, struct listnode *instructions, struct listnode *data, struct hashmap *labels, struct hashmap *labelattributes);
 
 #endif
